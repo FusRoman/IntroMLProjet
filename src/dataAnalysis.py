@@ -4,35 +4,73 @@ import pandas as pds
 
 corpusFolder = "../data/nlp_project_corpus/corpus/fr/"
 listeCorpus = []
+decodedData = []
 
 for (_, _, files) in walk(corpusFolder):
     files.remove("fr.pud.dev.json")
     listeCorpus.extend(files)
 
-def dataAnalysis():
-    exampleSentence = []
-    nbrSentence = []
-    nbrSentenceElement = []
-    for files in listeCorpus:
-        occur = {}
-        if(files != "fr.pud.dev.json"):
-            with open(corpusFolder + files, 'r') as fp:
-                loaded_json = json.load(fp)
-                data = json.JSONDecoder().decode(json.dumps(loaded_json))
-                exampleSentence.append(" ".join(data[0][0]))
-                for sentence_label in data:
-                    for word in sentence_label[0]:
-                        occur.setdefault(word, 0)
-                        occur[word] += 1
-                nbrSentence.append(len(data))
-                nbrSentenceElement.append(sum(occur.values()))
-    return exampleSentence, nbrSentence, nbrSentenceElement
 
 def decodeData(file):
     with open(file, 'r') as fp:
         loaded_json = json.load(fp)
     return json.JSONDecoder().decode(json.dumps(loaded_json))
-    
+
+
+for file in listeCorpus:
+    decodedData.append(decodeData(corpusFolder + file))
+
+
+def dataAnalysis():
+    exampleSentence = []
+    nbrSentence = []
+    nbrSentenceElement = []
+    nbrUniqueElement = []
+    for data in decodedData:
+        occur = {}
+        uniqueElement = set()
+        firstSentence = []
+        # recupere les 3 premiere phrases de chaque corpus
+        for sentence_label in data[0:3]:
+            firstSentence.append(" ".join(sentence_label[0]))
+        exampleSentence.append(firstSentence)
+        # calcul le nombre d'element (mot, ponctuation, autre...)
+        # de chaque corpus
+        for sentence_label in data:
+            for word in sentence_label[0]:
+                uniqueElement.add(word)
+                occur.setdefault(word, 0)
+                occur[word] += 1
+        nbrSentence.append(len(data))
+        nbrSentenceElement.append(sum(occur.values()))
+        nbrUniqueElement.append(len(uniqueElement))
+    return exampleSentence, nbrSentence, nbrSentenceElement, nbrUniqueElement
+
+def uniqueWord(data):
+    uniqueWord = set()
+    for sentence_label in data:
+        for word in sentence_label[0]:
+            uniqueWord.add(word)
+    return uniqueWord
+
+# renvoie les informations du calcul du pourcentage d'out-of-vocabulary words
+def computeOOV():
+    oovPercent = []
+    trainFst = []
+    testSnd = []
+    for train, nameTrainCorpus in zip(decodedData, listeCorpus):
+        uniqTrain = uniqueWord(train)
+        lenUniqtrain = len(uniqTrain)
+        for test, nameTestCorpus in zip(decodedData, listeCorpus):
+            if nameTrainCorpus != nameTestCorpus and nameTestCorpus not in trainFst:
+                trainFst.append(nameTrainCorpus)
+                testSnd.append(nameTestCorpus)
+                uniqTest = uniqueWord(test)
+                oov = uniqTest - uniqTrain
+                oovPercent.append( (len(oov) / (lenUniqtrain + len(uniqTest))) * 100 )
+    return trainFst, testSnd, oovPercent
+
+
 """
 decode_ftb_train = decodeData(fr_ftb_train)
 decode_ftb_test = decodeData(fr_ftb_test)
