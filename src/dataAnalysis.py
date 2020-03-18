@@ -58,17 +58,30 @@ def computeOOV():
     oovPercent = []
     trainFst = []
     testSnd = []
-    for train, nameTrainCorpus in zip(decodedData, listeCorpus):
-        uniqTrain = uniqueWord(train)
-        lenUniqtrain = len(uniqTrain)
-        for test, nameTestCorpus in zip(decodedData, listeCorpus):
+    uniqWordAllCorpus = []
+    for data in decodedData:
+        uniqWordAllCorpus.append(uniqueWord(data))
+    
+    for train, nameTrainCorpus in zip(uniqWordAllCorpus, listeCorpus):
+        lenUniqtrain = len(train)
+        for test, nameTestCorpus in zip(uniqWordAllCorpus, listeCorpus):
             if nameTrainCorpus != nameTestCorpus and nameTestCorpus not in trainFst:
                 trainFst.append(nameTrainCorpus)
                 testSnd.append(nameTestCorpus)
-                uniqTest = uniqueWord(test)
-                oov = uniqTest - uniqTrain
-                oovPercent.append( (len(oov) / (lenUniqtrain + len(uniqTest))) * 100 )
+                oov = train - test
+                oovPercent.append( (len(oov) / (lenUniqtrain + len(test))) * 100 )
     return trainFst, testSnd, oovPercent
+
+"""
+def computeKLdivergence():
+    for train, trainCorpus in zip(decodedData, listeCorpus):
+        for test, testCorpus in zip(decodedData, listeCorpus):
+            if nameTrainCorpus != nameTestCorpus and nameTestCorpus not in trainFst:
+                
+
+
+computeKLdivergence()
+"""
 
 
 """
