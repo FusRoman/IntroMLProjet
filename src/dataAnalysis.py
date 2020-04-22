@@ -1,11 +1,14 @@
 import json
 from os import walk
 import pandas as pds
+import math
 
 # Contient une phrase et les étiquettes
 # Attributs :
 # - sentence :  la phrase (suite de mots)
 # - labels :    les étiquettes (liste de même longueur que sentence)
+
+
 class Data:
     def __init__(self, sentence, labels):
         self.sentence = sentence
@@ -30,7 +33,7 @@ class Corpus:
     def __init__(self, name, data):
         self.name = name
         self.data = [Data(d[0], d[1]) for d in data]
-        
+
         self.update3Grams()
         self.updateDistinct3Grams()
         self.updateUniqueWords()
@@ -43,7 +46,7 @@ class Corpus:
 
     def update3Grams(self):
         self.nb3Grams = 0
-        for n in self.iterate3Grams():
+        for _ in self.iterate3Grams():
             self.nb3Grams += 1
 
     def updateDistinct3Grams(self):
@@ -65,6 +68,8 @@ class Corpus:
 
 
 listeCorpus = []
+
+
 def init():
     global listeCorpus
 
@@ -89,8 +94,10 @@ def init():
         print("\tDone")
     print("Done!")
 
+
 def getCorpusNames():
     return [c.name for c in listeCorpus]
+
 
 def dataAnalysis():
     exampleSentence = []
@@ -117,6 +124,8 @@ def dataAnalysis():
     return exampleSentence, nbrSentence, nbrSentenceElement, nbrUniqueElement
 
 # renvoie les informations du calcul du pourcentage d'out-of-vocabulary words
+
+
 def computeOOV():
     oovPercent = []
     trainFst = []
@@ -128,5 +137,61 @@ def computeOOV():
                 trainFst.append(train.name)
                 testSnd.append(test.name)
                 oov = test.uniqueWords - train.uniqueWords
-                oovPercent.append( (len(oov) / (train.nbUniqueWords + test.nbUniqueWords) * 100))
+                oovPercent.append(
+                    (len(oov) / (train.nbUniqueWords + test.nbUniqueWords) * 100))
     return trainFst, testSnd, oovPercent
+
+
+def count3grams(train, test):
+    count = dict()
+    for grams in train.iterate3Grams():
+        count.setdefault(grams, 0)
+        count[grams] += 1
+    for grams in test.iterate3Grams():
+        count.setdefault(grams, 0)
+        count[grams] += 1
+    return count
+
+
+def computeKLDivergence(train, test):
+    occur3gram = count3grams(train, test)
+    dkl = 0
+
+    # N : Nombre de 3-grams dans le corpus train et test
+    N = train.nb3Grams + test.nb3Grams
+    # V : Nombre de 3-grams distincts dans le corpus train et test
+    V = train.nbDistinct3Grams + test.nbDistinct3Grams
+    
+    #calcul le denominateur de la probabilité d'apparition du 3-grams dans les ensembles de 
+    # test et d'apprentissage -> #N + #V * (#d - 2) où d - 2 correspond au nombre de 3-grams
+    # dans le corpus correspondant
+    denomTrain = N + V * (train.nb3Grams)
+    denomTest = N + V * (test.nb3Grams)
+
+    for _, occurgrams in occur3gram.items():
+        #print("grams : ", grams, " -> occur : ", occurgrams)
+        p_test = (occurgrams + 1) / denomTest
+        p_train = (occurgrams + 1) / denomTrain
+        #print("p_test : ", p_test)
+        #print("p_train : ", p_train)
+        log = math.log(p_test / p_train)
+        #print("log : ", log)
+        dkl += p_test * log
+        #print("dkl : ", dkl)
+    return dkl
+
+
+def computeAllKLDivergence():
+
+    DKL = []
+    trainFst = []
+    testSnd = []
+
+    for train in listeCorpus:
+        for test in listeCorpus:
+            if train != test:
+                trainFst.append(train.name)
+                testSnd.append(test.name)
+                DKL.append(computeKLDivergence(train, test))
+
+    return trainFst, testSnd, DKL
