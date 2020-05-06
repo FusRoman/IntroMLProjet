@@ -7,6 +7,13 @@
 \usepackage{multirow}
 \usepackage{dblfloatfix}
 
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+
+
 \usepackage{hyperref}
 \hypersetup{
 colorlinks   = true, %Colours links instead of ugly boxes
@@ -276,12 +283,70 @@ corpus & trainset & testset & devset \\
 \label{perplexityTable}
 \end{table}
 
-La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entrainement de gsd et l'ensemble d'entrainement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce au mots les plus ambigu de chaque corpus. Si l'on regarde le jupyter-notebook, ces ensembles possèdent les mots les plus ambigu des corpus avec notamment le mot 'A' ayant plus de 6 labels différents associée dans l'ensemble de train ftb.
+La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entrainement de gsd et l'ensemble d'entrainement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce au mots les plus ambigu de chaque corpus. Si l'on regarde le jupyter-notebook sur les mots les plus ambigu de chaque corpus, ces ensembles possèdent les mots les plus ambigu des corpus avec notamment le mot 'A' ayant plus de 6 labels différents associée dans l'ensemble de train ftb.
 
 \chapter{Classifieur multi-classe}
 \section{Arbre de décision}
 
-Pour résoudre notre problème de PoS tagging, nous avons choisi d'implémenter un arbre de décision. 
+Pour résoudre notre problème de PoS tagging, nous avons choisi d'implémenter un arbre de décision. Il s'agit d'un algorithme qui fabrique un arbre binaire dont un chemin dans cette arbre est une suite de test à effectuer sur une donnée pour ensuite arriver à une prédiction au niveau des feuilles de l'arbre. Contrairement à d'autre algorithme de machine learning, celui-ci est un algorithme qui permet de comprendre les prédictions effectué par celui-ci. C'est un algorithme boite blanche contrairement à d'autre qui sont des algorithme boite noir comme les réseaux de neurone. 
+Si l'on souhaite comprendre une prédiction, il suffit de refaire le chemin de décision dans l'arbre. 
+
+La construction de l'arbre en revanche est un peu plus subtile que pour la prédiction. Nous suivons l'algorithme C4.5 qui est une amélioration de l'algorithme ID3.
+
+\begin{algorithm}
+\begin{minipage}[t]{20cm}
+\caption{Algorithme de contruction de l'arbre de décision}
+\label{buildTree}
+\begin{algorithmic}[1]
+\Function{buildTree}{$X,Y, max\_depth$}
+\If{$taille(X) < threshold \lor taille(Y) < threshold \lor max\_depth == 0$}
+\State \textbf{return} $max\{P(c)\footnote{où P(c) est la probabilité d'apparition de la classe c dans Y}|\forall c \in Y\}$
+\Else
+\State $bestTest, Xyes, Yyes, Xno, Yno \gets meilleurTest(X, Y)$
+\State $left \gets buildTree(Xyes, Yyes, max\_depth - 1)$
+\State $right \gets buildTree(Xno, Yno, max\_depth - 1)$
+\State \textbf{return} $(bestTest, left, right)$
+\EndIf
+\EndFunction
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{minipage}[t]{20cm}
+\caption{Algorithme de choix du meilleur test}
+\label{getBestTest}
+\begin{algorithmic}[1]
+\Function{meilleurTest}{$X,Y$}
+\State $bestTest \gets (0,0)$
+\State $bestXyes \gets \emptyset$
+\State $bestYyes \gets \emptyset$
+\State $bestXno \gets \emptyset$
+\State $bestYno \gets \emptyset$
+\ForAll {$features \in X$}
+\State $\overline{f} \gets select\_test(features)$
+\State $yes\_answer \gets yes\_answer \cup \{y | \forall y \in Y, y \leq \overline{f} \}$
+\State $no\_answer \gets no\_answer \cup \{y | \forall y \in Y, y > \overline{f} \}$
+\State $score \gets computeScore(yes\_answer, no\_answer)$
+\If {score is better than bestScore}
+
+\State $bestTest \gets (\overline{f}, features)$
+\State $bestYyes \gets yes\_answer$
+\State $bestYno \gets no\_answer$
+ \State $bestXyes \gets \{x_y |\forall x \in X, y \in bestYyes\}$
+ \State $bestXno \gets \{x_y |\forall x \in X, y \in bestYno\}$
+\EndIf
+\EndFor
+\State \textbf{return} $bestTest, bestXyes, bestYyes, bestXno, bestYno$
+\EndFunction
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+
+\subsection{Hyper-paramètre}
+
+Le pseudo\_code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètre permettent de changer le comportement du pseudo\_code. Dans un premier temps, nous avons deux hyper-paramètre permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifique à l'ensemble d'apprentissage et la précision des prédictions diminuerons sur l'ensemble de test. 
 
 \chapter*{Plus tard}
 
