@@ -90,7 +90,7 @@ class DecisionTreeClassifier:
             self.labelClass[id] = k
             id += 1
 
-        self.gold = [self.classLabel[g] for g in self.gold]
+        self.gold = np.array([self.classLabel[g] for g in self.gold])
 
 
     def setNewParam(self, newParam):
@@ -125,7 +125,10 @@ class DecisionTreeClassifier:
 
     def getBestTest(self, X, Y):
 
-        nbSample, nbFeature = np.shape(X)
+        #print(type(X))
+        #print(type(Y))
+
+        _, nbFeature = np.shape(X)
         nbGold = np.shape(Y)[0]
         
         entropyY = 0
@@ -143,10 +146,10 @@ class DecisionTreeClassifier:
             bestScore = -1000000000
             
         bestTest = 0
-        bestYesLabel = []
-        bestYesSample = []
-        bestNoLabel = []
-        bestNoSamples = []
+        bestYesLabel = None
+        bestYesSample = None
+        bestNoLabel = None
+        bestNoSamples = None
 
         # On regarde chacune des features
         for f in range(nbFeature):
@@ -156,16 +159,22 @@ class DecisionTreeClassifier:
             elif self.gen_test == "median":
                 test = self.median(X, f)
 
-            yes_samples = X[X[:, f] <= test]
-            yes_label = Y[X[:, f] <= test]
-            
-            no_samples = X[X[:, f] > test]
-            no_label = Y[X[:, f] > test]
+            #print(test)
+            #print(type(Y))
 
+            yes_index = X[:, f] <= test
+            no_index = np.logical_not(yes_index)
+
+            yes_samples = X[yes_index]
+            yes_label = Y[yes_index]
+            
+            no_samples = X[no_index]
+            no_label = Y[no_index]
+            
             score = 0
             
             # Si le test permet de séparé les données
-            if yes_label and no_label and yes_samples and no_samples:
+            if yes_label.size > 0 and no_label.size > 0 and yes_samples.size > 0 and no_samples.size > 0:
 
                 if self.split_criterion == "entropy":
                     # On calcule la quantité d'information contenue dans l'ensemble des données
@@ -173,8 +182,8 @@ class DecisionTreeClassifier:
                     entropyYes = self.computeEntropy(yes_label)
                     # De même dans l'ensemble des données ne passant pas le test
                     entropyNo = self.computeEntropy(no_label)
-                    probaYes = len(yes_label) / nbGold
-                    probaNo = len(no_label) / nbGold
+                    probaYes = np.shape(yes_label)[0] / nbGold
+                    probaNo = np.shape(no_label)[0] / nbGold
                     # On calcule l'entropie conditionnelle H(S|test), c'est à dire la quantité
                     # d'information contenue dans l'ensemble des données du noeud sachant qu'un
                     # test a été effectué
@@ -198,8 +207,8 @@ class DecisionTreeClassifier:
                     # On calcule le degrés d'impureté des deux ensembles no et yes
                     impurityLeft = self.computeGiniImpurity(yes_label)
                     impurityright = self.computeGiniImpurity(no_label)
-                    probaYes = len(yes_label) / nbGold
-                    probaNo = len(no_label) / nbGold
+                    probaYes = np.shape(yes_label)[0] / nbGold
+                    probaNo = np.shape(no_label)[0] / nbGold
                     score = probaYes * impurityLeft + probaNo * impurityright
                     
                     # On récupére le test permettant de minimiser l'impureté 
@@ -239,7 +248,7 @@ class DecisionTreeClassifier:
                     X, Y)
 
                 # Si on n'a pas réussi à séparé les données, on créée une feuille
-                if not Yno or not Xno or not Yyes or not Xyes:
+                if Yno.size == 0 or Xno.size == 0 or Yyes.size == 0 or Xyes.size == 0:
                     return Counter(Y).most_common(1)[0][0]
 
                 # On construit la branche gauche de l'arbre avec les données ayant passé le test
@@ -253,7 +262,7 @@ class DecisionTreeClassifier:
         return build_tree(self.feature, self.gold, self.max_depth)
 
     def predictSingleWord(self, node, X):
-        if type(node) == int:
+        if type(node) != tuple:
             return self.labelClass[node]
         else:
             feature, test = node[0]

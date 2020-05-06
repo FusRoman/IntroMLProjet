@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2020.5.6)  6 MAY 2020 18:58
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Debian) (preloaded format=pdflatex 2020.5.6)  6 MAY 2020 19:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -838,6 +838,12 @@ Overfull \hbox (104.05511pt too wide) in paragraph at lines 316--344
 [][] 
  []
 
+
+Overfull \hbox (1.48463pt too wide) in paragraph at lines 349--351
+\T1/cmr/m/n/14.4 Plu-sieurs hyper-paramètres per-mettent de chan-ger le com-por
+-te-ment du pseudo-
+ []
+
 [19] [20] [21] [22
 
 ]
@@ -845,20 +851,20 @@ Overfull \hbox (104.05511pt too wide) in paragraph at lines 316--344
 Class memoir Warning: The material used in the headers is too large
 (17.51038pt) for the given head height (17.5pt), it is recommended to
 either increase the head height or redesign the header
-(in both cases you will find help in the memoir manual). on input line 360.
+(in both cases you will find help in the memoir manual). on input line 363.
 
 [23]
 \tf@toc=\write5
 \openout5 = `intro_ml_final_report.toc'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 360.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 360.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 363.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 363.
  (./intro_ml_final_report.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 360.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 360.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 363.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 363.
 Package rerunfilecheck Info: File `intro_ml_final_report.out' has not changed.
 (rerunfilecheck)             Checksum: 9B6A878AFFE28BCE58A32B7B8B8B4E6D;2116.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 360.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 363.
  ) 
 Here is how much of TeX's memory you used:
  14758 strings out of 480607
@@ -889,9 +895,9 @@ cm/cmmi7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
 /usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/sha
 re/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/tex
 live/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb>
-Output written on intro_ml_final_report.pdf (23 pages, 239532 bytes).
+Output written on intro_ml_final_report.pdf (23 pages, 240487 bytes).
 PDF statistics:
- 626 PDF objects out of 1000 (max. 8388607)
+ 628 PDF objects out of 1000 (max. 8388607)
  256 compressed objects within 3 object streams
  50 named destinations out of 1000 (max. 500000)
  97 words of extra memory for PDF output out of 10000 (max. 10000000)
