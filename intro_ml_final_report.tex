@@ -285,7 +285,7 @@ corpus & trainset & testset & devset \\
 
 La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entraînement de gsd et l'ensemble d'entraînement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce aux mots les plus ambigus de chaque corpus. Si l'on regarde le jupyter-notebook sur les mots les plus ambigus de chaque corpus, ces ensembles possèdent les mots les plus ambigus des corpus avec notamment le mot 'A' ayant plus de 6 étiquettes différentes associées dans l'ensemble de train ftb.
 
-\chapter{Classifieur multi-classe}
+\chapter{Classifieurs multi-classe}
 \section{Arbre de décision}
 
 Pour résoudre notre problème de PoS Tagging, nous avons choisi d'implémenter un arbre de décision. Il s'agit d'un algorithme qui fabrique un arbre binaire dont un chemin dans cet arbre est une suite de tests à effectuer sur une donnée pour ensuite arriver à une prédiction au niveau des feuilles de l'arbre. Contrairement à d'autres algorithmes de machine learning, celui-ci est un algorithme qui permet de comprendre les prédictions effectuées. C'est un algorithme "boîte blanche" contrairement à d'autres qui sont des algorithmes "boîte noir" (dont les exemples les plus connus sont les réseaux de neurone). 
@@ -346,10 +346,54 @@ La construction de l'arbre en revanche est un peu plus subtile que pour la préd
 
 \subsection{Hyper-paramètres}
 
-<<<<<<< HEAD
 Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètre permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
 
-Nous avons également deux autres hyper-paramètres importanst permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de test. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. 
+Nous avons également deux autres hyper-paramètres importants permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de test. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. 
+
+
+\section{Classifieur naïf bayésien}
+
+En plus de l'arbre de décision, nous avons voulu implémenter un classifieur naïf bayésien. Cependant, par manque de temps notamment à cause des autres projets que nous devions réaliser en même temps, nous avons passé beaucoup moins de temps dessus ce qui explique en partie ses mauvais résultats.
+
+La première étape pour réaliser un tel classifieur consiste à analyser l'ensemble de données d'apprentissage. On le subdivise d'abord par étiquette pour obtenir un sous-ensemble pour chaque classe. Sur chacun de ces ensembles, on calcule ensuite le cardinal, la moyenne et l'écart type.
+
+Le classifieur est ensuite prêt à prédire la classe d'une donnée qu'on lui donne. On calcule la probabilité que celle-ci fasse partie de chaque classe puis on prend la meilleure. La probabilité que la donnée $x$ fasse partie de la classe $C$ est estimée avec la formule suivante :
+
+\begin{equation}
+P(C \mid x) = \frac{P(x \mid C) \cdot P(C)}{P(x)}
+\end{equation}
+
+$P(C \mid x)$ est ici la probabilité que $x$ soit de la classe $C$, soit exactement ce qu'on veut calculer. $P(x \mid C)$ est la probabilité d'observer $x$ sachant que la donnée observée est de la classe $C$. $P(C)$ est la probabilité de tomber sur une donnée de la classe $C$ globalement, et similairement $P(x)$ la probabilité de trouver $x$ sans hypothèse sur la classe.
+
+Cette formule est le théorème de Bayes, d'où le nom du classifieur. Puisqu'on ne s'intéresse qu'à la probabilité la plus grande parmi toutes les classes, il est inutile de la calculer complètement, étant donné que la valeur de $P(x)$ ne changera pas d'une classe sur l'autre. Au final il suffit donc de calculer :
+
+\begin{equation}
+P(x \mid C) \cdot P(C)
+\end{equation}
+
+Malheureusement, $P(x \mid C)$ nécessiterait un nombre extrêmement grand de données pour pouvoir être calculé correctement. C'est pourquoi il faut faire une hypothèse supplémentaire sur les données, d'où le qualificatif "naïf" de la méthode de classification ; ici, on suppose que chaque feature suit une loi normale et qu'elle est indépendante des autres, ce qui n'est évidemment pas le cas la plupart du temps ; malgré tout, la classification naïve bayésienne est réputée assez efficace pour le PoS Tagging. En supposant une telle distribution, on peut utiliser l'équation suivante :
+
+\begin{equation}
+P(x \mid C) = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac {1} {2} (\frac {x - \mu} {\sigma})²}
+\end{equation}
+
+Avec $\mu$ la moyenne et $\sigma$ l'écart type, tous deux calculés plus tôt.
+
+
+\subsection{Résultats}
+
+
+\subsection{Hyper-paramètres}
+Lors de l'implémentation, nous avons rencontré un souci sous la forme d'une division par zéro lorsque l'écart type vaut 0. Certaines de nos features étant des booléens, le cas doit être géré. Notre première approche pour résoudre le problème était intuitive : si l'écart type vaut 0 et que la feature observée vaut la moyenne, alors la probabilité que la donnée appartienne à la classe considérée n'est a priori pas nul ; au contraire, si les deux valeurs sont différentes, il y a très peu de chances que ce soit le cas.
+
+Après de rapides recherches, en remplaçant l'écart type par une valeur prédéfinie $\sigma$ dans ce cas, on obtient une formule avec des résultats satisfaisants. Cependant $\sigma$ ne doit être ni trop petit, ni trop grand. Nous avons décidé de faire de cette valeur un hyper-paramètre.
+
+
+\subsection{Idées de développement}
+
+Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
+
+Une solution serait de considérer différents types de features, par exemple booléennes, catégoriques, résultats de hachage, etc. Le calcul de probabilité effectué ensuite diffèrerait selon le type de la variable. Il reste à déterminer quelles catégories retenir, et quelles sont les fonctions qui y sont adaptées.
 
 \chapter*{Plus tard}
 

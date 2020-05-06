@@ -12,6 +12,10 @@
 \contentsline {subsection}{Out Of Vocabulary words}{13}{section*.2}%
 \contentsline {subsection}{Divergence de KullBack-Leibler}{14}{section*.3}%
 \contentsline {subsubsection}{Perplexité}{16}{section*.4}%
-\contentsline {chapter}{\chapternumberline {3}Classifieur multi-classe}{19}{chapter.3}%
+\contentsline {chapter}{\chapternumberline {3}Classifieurs multi-classe}{19}{chapter.3}%
 \contentsline {section}{\numberline {3.1}Arbre de décision}{19}{section.3.1}%
 \contentsline {subsection}{Hyper-paramètres}{19}{section*.5}%
+\contentsline {section}{\numberline {3.2}Classifieur naïf bayésien}{22}{section.3.2}%
+\contentsline {subsection}{Résultats}{23}{section*.6}%
+\contentsline {subsection}{Hyper-paramètres}{23}{section*.7}%
+\contentsline {subsection}{Idées de développement}{23}{section*.8}%
