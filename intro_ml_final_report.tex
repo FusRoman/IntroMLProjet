@@ -7,6 +7,13 @@
 \usepackage{multirow}
 \usepackage{dblfloatfix}
 
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+
+
+
 \usepackage{hyperref}
 \hypersetup{
 colorlinks   = true, %Colours links instead of ugly boxes
@@ -31,68 +38,67 @@ Out-Of-Domain PoS Tagging
 
 \chapter{Introduction}
 \section{Contexte}
-Le Part of speech tagging (PoS ou encore étiquetage morpho-syntaxique en français) consiste à construire un algorithme capable d'identifier et d'extraire les informations syntaxiques des mots contenue dans une phrases. Ainsi, notre algorithme doit être capable d'associer une étiquettes à chaque mot d'une phrases, cette étiquettes permettant de connaître la classe syntaxique du mot en question.\\
-Le PoS est un problème bien connue en linguistique. Il s'agit de la façon dont, nous autres humains, comprenons les mots et leurs fonctions dans une phrases. Il s'agit d'un processus d'apprentissage que nous faisons en étant enfant lorsque nous lisont ou écoutons pour la première fois. Lorsque nous arrivons à identifier les structures syntaxiques d'une phrase, cela signifie que nous avons compris le contexte qui entoure la phrases, sa significations et donc de mieux la comprendre. Ainsi, avec le developpement des techniques algorithmiques moderne et l'augmentation des vitesses de traitements des ordinateurs, Nous voulons donner à nos ordinateurs la capacité de pouvoir comprendre le langage humain que ce soit écrit ou oral. Cela permettrait d'améliorer les algorithmes de detection des erreurs, les assistants personnels tel \href{https://www.apple.com/fr/siri/}{Siri} ou \href{https://www.microsoft.com/en-us/cortana}{Cortana} ou encore le domaine de la robotique avec par exemple \href{https://www.softbankrobotics.com/emea/fr/nao}{Nao}.
+Le Part of Speech Tagging (PoS ou encore étiquetage morpho-syntaxique en français) consiste à construire un algorithme capable d'identifier et d'extraire les informations syntaxiques des mots contenus dans une phrase. Ainsi, notre algorithme doit être capable d'associer une étiquette à chaque mot d'une phrase, cette étiquette permettant de connaître la classe syntaxique du mot en question.\\
+Le PoS est un problème bien connu en linguistique. Il s'agit de la façon dont les humains comprennent les mots et leur fonction dans une phrase. Il s'agit d'un processus d'apprentissage réalisé pendant l'enfance lorsque nous lisons ou écoutons pour la première fois. Lorsque nous arrivons à identifier les structures syntaxiques d'une phrase, cela signifie que nous avons compris son contexte et sa signification. Avec le développement des techniques algorithmiques modernes et l'augmentation des vitesses de traitement des ordinateurs, il est naturel de vouloir donner à nos ordinateurs la capacité de pouvoir analyser le langage humain que ce soit écrit ou oral. Cela permettrait d'améliorer les algorithmes de détection des erreurs, les assistants personnels tels que \href{https://www.apple.com/fr/siri/}{Siri} ou \href{https://www.microsoft.com/en-us/cortana}{Cortana} ou encore le domaine de la robotique avec par exemple \href{https://www.softbankrobotics.com/emea/fr/nao}{Nao}.
 
-\section{Approche naive et identification des problèmes}
+\section{Approche naïve et identification des problèmes}
 
-Nous pourrions nous arrêter la et construire un algorithme général qui, étend donné tout les mots possible du dictionnaire d'un langage, renvoie la bonne classe syntaxique du mot, une sorte de grandes tables de hashage qui associe chaque mot du dictionnaire avec sa classe syntaxique. Nous pouvons tout de suite identifier une limite à cette algorithme.
+Un algorithme naïf consisterait à, étant donné tout les mots possibles du dictionnaire d'un langage, renvoyer la bonne classe syntaxique du mot, à l'aide d'une sorte de grande table de hashage qui associerait chaque mot du dictionnaire avec sa classe syntaxique. Nous pouvons tout de suite identifier une limite à cette approche.
 
-Prenons l'exemple de deux phrases simple :
+Prenons l'exemple de deux phrases simples :
 \begin{itemize}
-    \item Aujourd'hui, Il a noté beaucoup de rendez-vous dans son carnet.
+    \item Aujourd'hui, il a noté beaucoup de rendez-vous dans son carnet.
     \item Le son d'un avion au décollage est très très fort.
 \end{itemize}
 
-Nous pouvons voir que le mot "son" est utilisé dans les deux phrases or leurs classes syntaxique à changé entre les deux. Dans la première phrase, "son" est utilisé comme étant un adjectifs possessif alors que dans la seconde, il s'agit du nom commun "son" qui décrit le phénomène physique. Nous avons identifier un premier problème à notre approche naive. Un même mot peut avoir plusieurs classes syntaxique qui dépend du contexte de la phrase. Il ne suffit plus simplement de se focaliser sur le mot seul mais sur toute la phrase en général.
+Nous pouvons voir que le mot "son" est utilisé dans les deux phrases, or sa classe syntaxique n'est pas la même. Dans la première phrase, "son" est utilisé comme étant un adjectif possessif alors que dans la seconde, il s'agit du nom commun "son" qui décrit le phénomène physique. Nous avons identifier un premier problème à notre approche naïve. Un même mot peut avoir plusieurs classes syntaxiques qui dépend du contexte de la phrase. Il ne suffit plus simplement de se focaliser sur le mot seul mais sur toute la phrase en général.
 
-Un autre problème est celui du \href{https://en.wikipedia.org/wiki/Use\%E2\%80\%93mention_distinction}{use-mention distinction}. Ce problème peut être illustré de la façon suivante : Le mot "voiture" est composé de trois syllabes. . Dans cette exemple, le mot "voiture" peut être remplacé par n'importe quel mot contenant également trois syllabes. Ainsi, la différences entre "utilisé" un mot et y faire "référence" est dénotée dans cette exemple ( le "Brown Corpus tag set" \href{https://en.wikipedia.org/wiki/Part-of-speech_tagging#Issues}{ajoute} le tag -NC dans ces cas). Le problème est qu'on peut remplacé le mot par n'importe quelle autre, il s'agit d'une référence et doit donc avoir un tag syntaxique différent du reste des mots de la phrase.
+Un autre problème est celui du \href{https://en.wikipedia.org/wiki/Use\%E2\%80\%93mention_distinction}{use-mention distinction}. Ce problème peut être illustré de la façon suivante : le mot "voiture" est composé de trois syllabes. Dans cet exemple, le mot "voiture" peut être remplacé par n'importe quel mot contenant également trois syllabes. Ainsi, la différence entre "utiliser" un mot et y "faire référence" est dénotée dans cette exemple (le "Brown Corpus tag set" \href{https://en.wikipedia.org/wiki/Part-of-speech_tagging#Issues}{ajoute} le tag -NC dans ces cas). Le problème est qu'on peut remplacer le mot par n'importe quel autre, il s'agit d'une référence et doit donc avoir un tag syntaxique différent du reste des mots de la phrase.
 
-De plus, si nous utilisons l'approche naive de la table de hash. Il se pose la question du nombre de mot d'une langue mais également de la définition d'un mot. Il convient également d'identifier de quelles langues ont parle. L'humanité, au cours de son histoire, s'est scindée en de multiple groupes sur toute la planète et chacun à évolué avec sa propre histoire, culture et langue. Ainsi, notre algorithme doit-il se focaliser sur une seul langue ou essayer de toute les englobers ? Sur la question de la nature des mots d'une langue, il y a le cas des langues qui choisissent de composer des mots par associations comme l'allemand ou encore les langues agglutinantes comme \href{https://en.wikipedia.org/wiki/Longest_word_in_Turkish}{le turc}. Le français n'est pas \href{https://en.wikipedia.org/wiki/Longest_word_in_French}{en reste} non plus.
+De plus, si nous utilisons l'approche naïve de la table de hash, il se pose la question du nombre de mots d'une langue mais également de la définition d'un mot. Il convient également d'identifier de quelles langues on parle. L'humanité, au cours de son histoire, s'est scindée en de multiple groupes sur toute la planète et chacun a évolué avec sa propre histoire, culture et langue - sans compter sur les variantes liées à la localisation géographique, au contexte social et culturel, etc. Ainsi, notre algorithme doit-il se focaliser sur une seule langue ou essayer de généraliser ? Sur la question de la nature des mots, il y a le cas des langues qui choisissent de composer des mots par association comme l'allemand ou encore les langues agglutinantes comme \href{https://en.wikipedia.org/wiki/Longest_word_in_Turkish}{le turc}. Le français n'est pas \href{https://en.wikipedia.org/wiki/Longest_word_in_French}{en reste} non plus..
 
-Cette question sur la nature des mots est intrinséquements lié avec celle du nombre de mot d'une langue. Par exemple, \textit{le Larousse} rescense plus de 59 000 mots pour le français alors que \textit{Le Littré} en compte pas moins de \href{https://fr.babbel.com/fr/magazine/quelle-langue-contient-le-plus-de-mots}{132 000}. Le nombre de mot d'une langue change en fonction de la définition que l'on donne à un mot.
+Il est donc essentiel de trouver une autre approche, plus générale, à ce problème.
 
-Il est donc essentielle de trouver une autre approche à ce problème.
+\section{Historique du Part Of Speech Tagging}
 
-\section{Historique du Part Of Speech tagging}
-
-Le tout premier corpus de langue a été construit dans les années 60 à l'université Brown à Providence dans le Rhode Island au Etats-Unis. Il était initialement composé uniquement de mot avec un total de 500 données de texte en langue anglaise pour plus de 1 000 000 de mots.Chacune des données ayant au moins 2000 mots. Ce corpus avait pour but de fournir des statistiques sur la langue anglaise comme la fréquence des mots dans la langue. 
-Très vite, les scientifiques et linguistique ajoute l'étiquetage morpho-syntaxique au brown corpus. Pour cela, un algorithme de PoS tagging est developpé par B.B. Green et G.M. Rubin. L'algorithme fonctionnait selon les possibilités de co-occurence des mots. PAr exemple, un determinant suit le plus souvent un mot en revanche un verbe n'est pas suivie d'un determinant. Ainsi, l'algorithme était capable d'atteindre 70\% 
+Le tout premier corpus de langue a été construit dans les années 60 à l'université Brown à Providence dans le Rhode Island au Etats-Unis. Il était initialement composé uniquement de mot avec un total de 500 données de texte en langue anglaise pour plus de 1 000 000 de mots.Chacune des données ayant au moins 2000 mots. Ce corpus avait pour but de fournir des statistiques sur la langue anglaise comme la fréquence des mots. 
+Très vite, les scientifiques et linguistes ajoutent l'étiquetage morpho-syntaxique au brown corpus. Pour cela, un algorithme de PoS tagging est developpé par B.B. Green et G.M. Rubin. L'algorithme fonctionnait selon les possibilités de co-occurence des mots. Par exemple, un déterminant précède le plus souvent un mot et pas un verbe. Ainsi, l'algorithme était capable d'atteindre 70\% 
 de précision mais cela imposait une relecture des tags à la main pour permettre d'annoter correctement le corpus. Ce corpus est à la base de beaucoup de recherche en traitement automatique des langues et a inspiré de nombreux autres corpus. 
 
-Du côté de l'Europe, au alentour des années 80, les scientifiques commence à utilisé des modèles de markov caché. Les modèles de markov caché sont des automates à états dont les transitions sont des fonctions de probabilité. Le principe de l'algorithme était donc de construire une table de probabilité de certaines séquence de mot dans une phrase. Par exemple, connaissant un mot dans la phrase, qu'elle serait le mot suivant ?. Ces modèles permettent d'atteindre une précision de l'ordre de 90\%. En revanche, ces modèles s'appuie sur des corpus spéciaux permettant d'atteindre un grand pourcentage de précision. Le problème est maintenant de savoir comment se comporte ces modèles lorsqu'on les utilisent sur des textes ayant des contextes très différents.
-Notamment, nous étudierons l'impact du changement de domaine entre l'ensemble d'apprentissage et l'ensemble de test. Nous passerons de corpus spécialisé dans des textes bien construits comme des articles de journaux à des corpus de tweets, phrases en langages courant ayant un nombre de charactères limité. 
+Du côté de l'Europe, aux alentours des années 80, les scientifiques commencent à utiliser des modèles de Markov cachés. Les modèles de Markov cachés sont des automates à états dont les transitions sont des fonctions de probabilité. Le principe de l'algorithme était donc de construire une table de probabilité de certaines séquences de mot dans une phrase. Par exemple, connaissant un mot dans la phrase, quel est le mot suivant le plus probable ? Ces modèles permettent d'atteindre une précision de l'ordre de 90\%. En revanche, ces modèles s'appuient sur des corpus spéciaux permettant d'atteindre un grand pourcentage de précision. Le problème est maintenant de savoir comment se comportent ces modèles lorsqu'on les utilise sur des textes ayant des contextes très différents.
 
-Dans la suite de ce rapport, nous allons étudié l'utilisation d'algorithme d'apprentissage machine pour traité le problème du PoS tagging. Plus particulièrement, nous utiliserons le modèle de génération d'arbre de décision et développerons un ensemble de feature permettant d'atteindre un bon score de précision. 
-Avant cela, nous passerons en revue les corpus dont nous disposons pour entrainer notre modèles et étudierons quelques valeurs statistiques sur ceux-ci. 
+Ce souci de généralisation est central à ce projet. Nous passerons de corpus spécialisés dans des textes bien construit comme des articles de journaux à des corpus de tweets, phrases en langage courant ayant un nombre de caractères limités. 
+
+Dans la suite de ce rapport, nous allons étudier l'utilisation d'algorithmes d'apprentissage machine pour traiter le problème du PoS Tagging. Plus particulièrement, nous utiliserons le modèle de génération d'arbres de décision et développerons un ensemble de features permettant d'atteindre un bon score de précision. 
+Avant cela, nous passerons en revue les corpus dont nous disposons pour entraîner notre modèle et étudierons quelques valeurs statistiques sur ceux-ci. 
 
 \chapter{Etude des corpus}
 \section{Présentation général}
-Dans ce projet, nous nous sommes attardés sur les corpus français. Nous disposons d'un total de 6 coorpus ayant chacun un ensemble de données d'entrainement, un ensemble de données de test et un ensemble de données de développement. L'ensemble de données d'entrainement étant utilisé pour ajuster les paramètres de nos modèles dans le but de faire les meilleurs prédictions possibles, l'ensemble de test est utilisé pour évaluer notre modèles à chaque modifications des hyper-paramètre. En effet, les algorithmes de machine-learning dispose d'un ensemble de paramètre permettant de modifier leurs comportements, on appele ceux-ci des hyper-paramètres. Une certaine instance d'hyper-paramètre peut donner de très bon résultat alors qu'une autre peut donner des résultats catastrophique.
-Un des enjeux est alors de trouver la meilleurs instances d'hyper-paramètre pour notre modèle.Nous verrons cela plus en détaille dans le chapitre dédié aux résultats de nos modèles.
+Dans ce projet, nous nous sommes attardés sur des corpus en langue française. Nous disposons d'un total de 6 corpus ayant chacun un ensemble de données d'entraînement, un ensemble de données de test et un ensemble de données de développement. L'ensemble de données d'entrainement est utilisé pour ajuster les paramètres de nos modèles dans le but de faire les meilleures prédictions possibles, l'ensemble de test est utilisé pour évaluer notre modèle à chaque modification des hyper-paramètres. En effet, les algorithmes de machine-learning dispose d'un ensemble de paramètres permettant de modifier leur comportement, on appelle ceux-ci des hyper-paramètres. Une certaine instance d'hyper-paramètres peut donner de très bons résultats alors qu'une autre peut se révéler catastrophique.
+Un des enjeux est alors de trouver la meilleure instance d'hyper-paramètres pour notre modèle. Nous verrons cela plus en détail dans le chapitre dédié aux résultats de nos modèles.
 
-Pour en revenir sur nos ensembles de corpus après cette petite parenthèse, nous avons donc un ensemble de 6 corpus de texte français appelé ftb, gsd, partut, pud, sequoia et spoken. Nous disposons ensuite de deux corpus supplémentaire de test appelé foot et natdis. Ces corpus sont utilisé pour évaluer l'impact du changement de context entre l'ensemble d'apprentissage et l'ensemble de test/dev.
+Pour en revenir sur nos ensembles de corpus après cette petite parenthèse, nous avons donc un ensemble de 6 corpus de textes français appelé ftb, gsd, partut, pud, sequoia et spoken. Nous disposons ensuite de deux corpus supplémentaires de test appelés foot et natdis. Ces corpus sont utilisés pour évaluer l'impact du changement de contexte entre l'ensemble d'apprentissage et les ensembles de test et développement.
 
 \section{Contexte des différents corpus}
 \begin{itemize}
-\item \underline{Corpus sequoia} : Ce corpus contient des phrases provenant d'extrait de séance du parlement européen, du site Wikipédia FR, du corpus Est républicain contenant des extrait de journaux et de l'agence européenne du médicament. Les phrases de ce corpus proviennent donc de source diverse mais dans un contexte assez politique / scientifique avec des phrases bien structuré. Ce corpus vient en complément du corpus FTB pour augmenté le nombre de domaine et de genre couvert. 
+\item \underline{Corpus sequoia} : Ce corpus contient des phrases provenant d'extraits de séances du parlement européen, du site Wikipédia FR, du corpus Est Républicain contenant des extrait de journaux et de l'agence européenne du médicament. Les phrases de ce corpus proviennent donc de sources diverses mais dans un contexte assez politique / scientifique avec des phrases bien structurées. Ce corpus vient en complément du corpus FTB pour augmenter le nombre de domaines et de genre couvert. 
 
-\item \underline{Corpus FTB French TreeBank} : Ce corpus est un projet initié en 1997. Il regroupe un ensemble d'article du Monde sur une période de 1987 jusqu'en 1995. Par exemple, la première phrase de l'ensemble d'entrainement provient d'un article du Monde de 1992 traitant d'un sujet politique. On peut s'attendre à avoir un ensemble de phrase traitant de domaine varié mais centré principalement sur l'actualité dans la période concerné lors de la création du corpus. 
+\item \underline{Corpus FTB French TreeBank} : Ce corpus est un projet initié en 1997. Il regroupe un ensemble d'articlse du Monde sur une période de 1987 jusqu'à 1995. Par exemple, la première phrase de l'ensemble d'entraînement provient d'un article du Monde de 1992 traitant d'un sujet politique. On peut s'attendre à avoir un ensemble de phrases traitant de domaines variés mais centré principalement sur l'actualité de la période concernée. 
 
-\item \underline{Corpus Partut} : Le corpus Partut est un corpus produit par l'université de Turin. Il comprend des extraits de phrases provenant des textes de loi de l'union européenne, de la déclaration universelle des droits de l'homme, de la licence Creative Commons, des extraits de pages du site Facebook, des extraits de réunion du parlement européen et finalement des extraits oraux pris sur le web.
+\item \underline{Corpus Partut} : Le corpus Partut est un corpus produit par l'université de Turin. Il comprend des extraits de phrases provenant des textes de loi de l'Union Européenne, de la déclaration universelle des droits de l'homme, de la licence Creative Commons, des extraits de pages du site Facebook, des extraits de réunions du parlement européen et finalement des extraits oraux pris sur le web.
 
-\item \underline{Corpus PUD} : Ce corpus provient du projet Universal Dependencies et le nom de ce corpus particulier est Parallèle Universal Dependencies. Il est composé de phrases provenant du domaine journalistique plus particulièrement de l'actualité. Il est également composé de phrases provenant de pages Wikipédia pris aléatoirement.
+\item \underline{Corpus PUD} : Ce corpus provient du projet Universal Dependencies et le nom de ce corpus particulier est Parallèle Universal Dependencies. Il est composé de phrases provenant du domaine journalistique, plus particulièrement de l'actualité. Il est également composé de phrases provenant de pages Wikipédia prises aléatoirement.
 
-\item \underline{Corpus GSD} : Ce corpus provient également du projet Universal Dependencies. Il couvre des phrases de domaine varié avec des articles de journaux, de pages Wikipédia, de blogs et de critiques de divers produit.
+\item \underline{Corpus GSD} : Ce corpus provient également du projet Universal Dependencies. Il couvre des phrases de domaines variés avec des articles de journaux, de pages Wikipédia, de blogs et de critiques de divers produits.
 
-\item \underline{Corpus Spoken} : Ce corpus comprend un ensemble de phrase dans un langage oral. Il comprend donc une retranscription fidèle de la parole des interlocuteurs avec notamment la présence d'interjection avec le "heu" que l'on peu très souvent entendre à l'oral. En revanche, avec la multitude de corpus oral présent dans la litérrature, nous n'avons pas été en mesure de déterminé précisément la provenance de celui-ci. Notre principal hypothèse est qu'il s'agit du corpus CFPP2000 contenant un ensemble d'extrait d'interview sur les quartiers de Paris et sa proche banlieue notamment au regard des phrases présente dans le corpus. 
+\item \underline{Corpus Spoken} : Ce corpus comprend un ensemble de phrases dans un langage oral. Il comprend donc une retranscription fidèle de la parole des interlocuteurs avec notamment la présence d'interjections avec le "heu" que l'on peut très souvent entendre à l'oral. En revanche, avec la multitude de corpus oraux présents dans la littérature, nous n'avons pas été en mesure de déterminer précisément la provenance de celui-ci. Notre principale hypothèse est qu'il s'agit du corpus CFPP2000 contenant un ensemble d'extraits d'interviews sur les quartiers de Paris et sa proche banlieue, notamment au regard des phrases présentes dans le corpus. 
 \end{itemize}
 
-Nous disposons également de deux ensembles de tests supplémentaires. Il s'agit de l'ensemble foot et natdis. L'ensemble de test foot est constitué de tweet de fan de football. Les phrases sont donc consitué d'élément ne pouvant pas se retrouver dans les autres corpus comme les émoticons. Le second ensemble de test appelé natdis est également un ensemble de tweet traitant cette fois du domaine des catastrophe naturelle. Ces ensembles de tests seront principalement utilisé pour évaluer l'impact du changement de domaine entre l'ensemble d'apprentissage et l'ensemble de test. 
+Nous disposons également de deux ensembles de test supplémentaires. Il s'agit des ensembles foot et natdis. L'ensemble de test foot est constitué de tweets de fans de football. Les phrases sont donc constituées d'éléments ne pouvant pas se retrouver dans les autres corpus comme des émoticônes. Le second ensemble de test appelé natdis est également un ensemble de tweets traitant cette fois du domaine des catastrophes naturelles. Ces ensembles de tests seront principalement utilisés pour évaluer l'impact du changement de domaines entre l'ensemble d'apprentissage et l'ensemble de test. 
 
 \section{Les classes du problème}
 
-Comme nous l'avons vu en introduction, notre problème est l'étiquetage morpho-syntaxique qui consiste à donner une étiquette à chaque mot d'une phrases en fonction de sa nature syntaxique. L'objectif de cette section est donc d'étudier ces différentes étiquettes qui constitueront les classes que notre modèle devra prédire.
+Comme nous l'avons vu en introduction, notre problème est l'étiquetage morpho-syntaxique qui consiste à donner une étiquette à chaque mot d'une phrase en fonction de sa nature syntaxique. L'objectif de cette section est donc d'étudier ces différentes étiquettes qui constitueront les classes que notre modèle devra prédire.
 
 Nous avons un total de 26 étiquettes différentes dans les corpus français dont voici la liste ci-dessous :
 
@@ -103,7 +109,7 @@ Nous avons un total de 26 étiquettes différentes dans les corpus français don
 \item PROPN : nom propre
 \item CCONJ : conjonction de coordination
 \item ADJ : adjectif
-\item DET : determinant
+\item DET : déterminant
 \item PRON : pronom
 \item VERB : verbe
 \item CONJ : conjonction
@@ -114,31 +120,31 @@ Nous avons un total de 26 étiquettes différentes dans les corpus français don
 \item AUX : auxiliaire
 \item SYM : symbole
 \item INTJ : interjection
-\item ADP + ADP : adposition liée, Il n'existe qu'un seul cas de ce tag dans tous les corpus et il est présent dans l'ensemble de test FTB et le mot associé est "jusqu'au"
+\item ADP + ADP : adposition liée. Il n'existe qu'un seul cas de ce tag tous corpus confondus et il est présent dans l'ensemble de test FTB. Le mot associé est "jusqu'au".
 \item ADP + DET : adposition pouvant également être un determinant, exemple tiré du corpus foot : \{'Du', 'Au', 'AU', 'du', 'DES', 'aux', 'au', 'DU', 'des' \}
-\item ADP + PRON : adposition pouvant également être un pronom, exemple tiré du corpus de developpement FTB : \{'auxquelles', 'duquel', 'desquelles', 'auxquels', 'auquel' \}
-\item DET + NOUN : determinant pouvant également être un nom : il n'existe qu'un seul cas dans tous les corpus, le mot "des" dans l'ensemble d'apprentissage du corpus PUD.
+\item ADP + PRON : adposition pouvant également être un pronom, exemple tiré du corpus de développement FTB : \{'auxquelles', 'duquel', 'desquelles', 'auxquels', 'auquel' \}
+\item DET + NOUN : déterminant pouvant également être un nom : il n'existe qu'un seul cas dans tous les corpus, le mot "des" dans l'ensemble d'apprentissage du corpus PUD.
 \item AT : @, utilisé dans les corpus de tweet pour faire une référence à quelque chose
 \item URL : lien hypertexte
-\item E : emoticon
+\item E : émoticône
 \item SHARP : \# sur twitter
 \item X : autre
 \end{itemize}
 
- Au delà des étiquettes standard comme Noun ou Verb, il y a quelque étiquettes spécial qu'il convient d'expliquer plus en détails. L'étiquette X est notamment utilisé pour désigner les mots inconnues du corpus ou ceux ayant une ortographe différente du mot habituelle. L'étiquette E est utilisé dans les corpus de tweet pour désigner les émoticons, ces étiquettes vont probablement posé certain problème lors du changement de domaine. L'étiquette SHARP est utilisé pour désigner les balises \# utilisé pour faire référence à d'autre tweet. Cette étiquette ne devrait également pas être retrouvé dans les autres corpus. L'étiquette URL permet de désigner les liens hypertexte dans une phrase. L'étiquette SYM sert à désigner des symboles spéciaux dans les tweets comme des drapeaux. L'étiquette AT sert à désigner le symbole \@ utilisé par les tweets pour faire référence à quelque chose.
+ Au delà des étiquettes standard comme Noun ou Verb, il y a quelque étiquettes spéciaesl qu'il convient d'expliquer plus en détails. L'étiquette X est notamment utilisée pour désigner les mots inconnus du corpus ou ceux ayant une orthographe différente du mot habituel. L'étiquette E est utilisée dans les corpus de tweets pour désigner les émoticônes, ces étiquettes vont probablement poser certains problèmes lors du changement de domaines. L'étiquette SHARP est utilisée pour désigner les balises \# utilisé pour faire référence à d'autres tweets. Cette étiquette ne devrait également pas être retrouvée dans les autres corpus. L'étiquette URL permet de désigner les liens hypertextes dans une phrase. L'étiquette SYM sert à désigner des symboles spéciaux dans les tweets comme des drapeaux. L'étiquette AT sert à désigner le symbole \@ utilisé par les tweets pour faire référence à quelque chose.
  
 \section{Analyse statistique des corpus}
 
-Nous avons identifiés les corpus et les différentes classes que notre algorithme devra prédire. Nous allons maintenant étudier plus en détails l'organisation et la structure des corpus au moyens de certaines observables statistique. Nous agrémenterons cette partie de quelques graphes et tableau pour rendre ceci plus lisible.
+Nous avons identifié les corpus et les différentes classes que notre algorithme devra prédire. Nous allons maintenant étudier plus en détail l'organisation et la structure des corpus aux moyens de certaines observations statistiques. Nous agrémenterons cette partie de quelques graphes et tableaux pour rendre le tout plus lisible.
 
-Dans un premier temps, nous allons étudié la taille de chacun des corpus en nombre de phrases, nombre de mot et nombre de mot unique.
+Dans un premier temps, nous allons étudier la taille de chacun des corpus en nombre de phrases, nombre de mots et nombre de mots uniques.
 
 \begin{table}
 \begin{minipage}[t]{5cm}
 \begin{center}
 \begin{tabular}{|l|r|p{3cm}|p{3cm}|p{3cm}|}
 \hline
-\diagbox{Corpus}{Statistique} & & nombre de phrases & Nombre de mots & Nombre de mots uniques \\
+\diagbox{Corpus}{Statistique} & & Nombre de phrases & Nombre de mots & Nombre de mots uniques \\
 \hline
  \multirow{3}*{gsd} & train     & 14450 & 345009 & 41072 \\
  & test      &   416 &   9742 &  3172 \\
@@ -156,7 +162,7 @@ Dans un premier temps, nous allons étudié la taille de chacun des corpus en no
  & test   &   726 &  10010 &  1980 \\
  & dev    &   907 &  10010 &  1894 \\
  \hline
- \multirow{3}*{pud\footnote{Ce corpus ne dipose pas d'ensemble de developpement d'où son absence}} & train     &   803 &  23324 &  3709 \\
+ \multirow{3}*{pud\footnote{Ce corpus ne dipose pas d'ensemble de développement d'où son absence}} & train     &   803 &  23324 &  3709 \\
  & test      &  1000 &  24138 &  6004 \\
  \hline
  \multirow{3}*{partut} & train  &   803 &  23324 &  3709 \\
@@ -174,13 +180,14 @@ Dans un premier temps, nous allons étudié la taille de chacun des corpus en no
 \label{tailleCorpus}
 \end{table}
 
-Comme nous pouvons le voir dans le tableau~\ref{tailleCorpus}, les deux corpus les plus fourni en données d'entrainement sont les corpus GSD et FTB. Ce sont les corpus ayant le plus grand nombre mots/ mots uniques.
+Comme nous pouvons le voir dans le tableau~\ref{tailleCorpus}, les deux corpus les plus fournis en données d'entraînement sont les corpus GSD et FTB. Ce sont les corpus ayant le plus grand nombre de mots / mots uniques.
 
-Dans le jupiter-notebook, deux autres mesures statistiques ont été effectué. La première permet de determiné les mots et labels les plus fréquents apparaissant dans chacun des corpus. La seconde permet de déterminé les mots les plus ambigu de chaque corpus. 
-Cette mesure statistique permet de montrer un des problème que nous soulevions dans l'introduction . Si l'on prend le corpus foot, l'ensemble de test contient le mot "tout", celui-ci est associé à pas moins de 6 labels différents. Ce mot sera alors très difficile à discriminé par notre algorithme d'apprentissage et risque de donner des prédictions incorrectes dans pas mal de cas.
+Dans le jupyter-notebook, deux autres mesures statistiques ont été effectuées. La première permet de determiner les mots et étiquettes les plus fréquents apparaissant dans chacun des corpus. La seconde permet de déterminer les mots les plus ambigus de chaque corpus. 
+Cette mesure statistique permet de montrer un des problèmes que nous soulevions dans l'introduction . Si l'on prend le corpus foot, l'ensemble de test contient le mot "tout", celui-ci est associé à pas moins de 6 étiquettes différentes. Ce mot sera alors très difficile à discriminer par notre algorithme d'apprentissage et risque de générer des prédictions incorrectes dans un certain nombre de cas.
 
-\subsection{Out Of vocabulary word}
-Nous allons maintenant passer à l'étude de la qualité de l'ensemble d'apprentissage sur l'ensemble de test grâce à la mesure d'out of vocabulary word (OOV).
+\subsection{Out Of Vocabulary words}
+Nous allons maintenant passer à l'étude des différences entre ensembles d'apprentissage et ensembles de test grâce à la mesure
+d'Out of Vocabulary words (OOV).
 \begin{table}[!b]
 \begin{center}
 \begin{tabular}{|l|r|r|r|r|}
@@ -196,29 +203,29 @@ Nous allons maintenant passer à l'étude de la qualité de l'ensemble d'apprent
 \hline
 \end{tabular}
 \end{center}
-\caption{Pourcentage d'OOV entre l'ensemble d'apprentissage de chaque corpus et son ensemble de test/developpement, l'ensemble de test foot et natdis}
+\caption{Pourcentage d'OOV entre l'ensemble d'apprentissage de chaque corpus et son ensemble de test / développement / foot / natdis}
 \label{oovPercent}
 \end{table}
 Ce sont les mots qui apparaissent dans l'ensemble de test mais pas dans l'ensemble d'apprentissage. Ainsi, plus le pourcentage est faible, plus l'ensemble de test et d'apprentissage ont un vocabulaire proche.
-Inversement, un pourcentage élevé indique une grande différence entre le vocabulaires de l'ensemble d'apprentissage et de l'ensemble de test. La meilleur solution serait d'avoir un ensemble d'apprentissage ayant le vocabulaire le plus riche possible pour pouvoir faire tendre ce pourcentage d'OOV vers zéro. Le modèle serait alors en mesure de pouvoir prédire plus précisement la classe syntaxique des mots car il aurait appris les meilleurs paramètres pour ces mots.
+Inversement, un pourcentage élevé indique une grande différence entre le vocabulaire des ensembles d'apprentissage et de test. Le cas idéal serait d'avoir un ensemble d'apprentissage ayant le vocabulaire le plus riche possible pour pouvoir faire tendre ce pourcentage d'OOV vers zéro. Le modèle serait alors en mesure de pouvoir prédire plus précisément la classe syntaxique des mots car il aurait appris les meilleurs paramètres pour ces mots, sans pour autant perdre en généralité.
 
-La tableau~\ref{oovPercent} nous donne les résultats du calcul du pourcentage d'OOV entre les ensembles d'apprentissage de tous les corpus avec leurs ensembles de test et de developpement. Au dela des ensembles spoken et pud, le pourcentage d'OOV entre le trainset et le testset est très faible ce qui nous fait dire que les performance de notre modèle sera plus correct sur ces corpus. En revanche, le corpus PUD a un pourcentage d'OOV très élevé, le plus élevé après spoken. Cela signifie qu'un grand nombre de mots inconnue vis-à-vis de l'entrainement du modèle sont présent dans l'ensemble de test. On s'attend à avoir des performance plus faible de notre modèle sur ces deux corpus. 
+La tableau~\ref{oovPercent} nous donne les résultats du calcul du pourcentage d'OOV entre les ensembles d'apprentissage de tous les corpus avec leurs ensembles de test et de developpement. Au-delà des ensembles spoken et pud, le pourcentage d'OOV entre le trainset et le testset est très faible ce qui nous fait dire que les performances de notre modèle seront plus correctes sur ces corpus. En revanche, le corpus PUD a un pourcentage d'OOV très élevé, le plus élevé après spoken. Cela signifie qu'un grand nombre de mots inconnus vis-à-vis de l'entrainement du modèle sont présents dans l'ensemble de test. On s'attend naturellement à avoir des performances plus faibles de notre modèle sur ces deux corpus. 
 
-Pour les ensembles de test foot et natdis, nous avons un pourcentage d'OOV relativement faible avec les corpus gsd, sequoia et ftb. Nous serions tenté de dire que notre modèle fera un score correct avec ces corpus ci. Il ne faut pas oublier en revanche que cette mesure ne s'appuie que sur la présence des mots, la structure même de phrases, l'agencement des mots et leurs ambiguité n'est pas représenter par cette mesure. 
+Pour les ensembles de test foot et natdis, nous avons un pourcentage d'OOV relativement faible avec les corpus gsd, sequoia et ftb. Il est probable que notre modèle fera un score correct avec ces corpus ci. Il ne faut pas oublier en revanche que cette mesure ne s'appuie que sur la présence des mots, la structure même des phrases, l'agencement des mots et leurs ambiguïtés ne sont pas représentées par cette mesure. 
 
 \subsection{Divergence de KullBack-Leibler}
 
-La divergence de KullBack-Leiber tire son origine de la théorie de l'information. L'objectif de la théorie de l'information est de déterminer la quantité d'information qu'il y a dans un ensemble de données. La métrique la plus importante de la théorie de l'information est la mesure de l'entropie notée H. Sa définition est :
-$H = -\sum_{i=1}^{N} p(x_i)\cdot log_2(p(x_i))$ L'utilisation d'un log en base 2 nous permet d'approcher la quantité minimal, la borne inférieur de bits nécessaire pour encoder la donnée $x_i$.
+La divergence de KullBack-Leiber tire son origine de la théorie de l'information, dont l'objectif est de déterminer la quantité d'informations qu'il y a dans un ensemble de données. La métrique la plus importante de la théorie de l'information est la mesure de l'entropie notée H. Sa définition est :
+$H = -\sum_{i=1}^{N} p(x_i)\cdot log_2(p(x_i))$ L'utilisation d'un log en base 2 nous permet d'approcher la quantité minimale, la borne inférieure de bits nécessaires pour encoder la donnée $x_i$.
 
-Maintenant que l'on peut connaitre la quantité d'information contenue dans notre ensemble, nous voulons quantifier la quantité d'information que l'on perd lorsque l'on passe de notre modèle à des données inconnues.
+Maintenant que l'on peut connaître la quantité d'informations contenue dans notre ensemble, nous voulons quantifier la quantité d'informations que l'on perd lorsque l'on passe à des données inconnues.
 C'est l'objectif de la divergence de KullBack-Leibler. 
 Sa définition est la suivante :
 $D_{KL}(p||q) = \sum_{i=1}^{N} p(x_i)\cdot [log_2(p(x_i)) - log_2(q(x_i))] = \sum_{i=1}^{N} p(x_i)\cdot log_2(\frac{p(x_i)}{q(x_i)})$
 
-Lorsque la valeur de cette métrique augmente, cela indique que l'on perd plus d'information en passant de la distribution observée à la distribution paramétrisé et inversement lorsque la métrique diminue. A noté que la divergence de KullBack-Leibler n'est pas symetrique, ainsi $DKL(observed||param) \neq DKL(param||observed)$.
+Lorsque la valeur de cette métrique augmente, cela indique que l'on perd plus d'informations en passant de la distribution observée à la distribution paramétrisée et inversement lorsque la métrique diminue. A noter que la divergence de KullBack-Leibler n'est pas symétrique, ainsi $DKL(observed||param) \neq DKL(param||observed)$.
 
-Dans notre exemple, l'utilisation de la divergence de Kullback-Leibler entre un ensemble d'apprentissage et de test nous permettra de quantifier la quantité d'information que le classifier n'aura pas réussi à récupéré par le biais de son apprentissage. Ainsi, il sera judicieux d'utiliser un ensemble d'apprentissage ayant une divergence la plus faible possible vis-à-vis de l'ensemble de test.
+Dans notre exemple, l'utilisation de la divergence de Kullback-Leibler entre un ensemble d'apprentissage et de test nous permettra de quantifier la quantité d'informations que le classifier n'aura pas réussie à récupérer par le biais de son apprentissage. Ainsi, il sera judicieux d'utiliser un ensemble d'apprentissage ayant une divergence la plus faible possible vis-à-vis de l'ensemble de test.
 
 \begin{table}
 \begin{center}
@@ -243,15 +250,15 @@ Le tableau~\ref{dklTable} nous donne les valeurs de la divergence de Kullback-le
 
 $DKL(test|train), DKL(foot test|train), DKL(natdis test|train)$ . 
 
-On constate que les valeurs de DKL sont relativement faible entre le trainset et le testset pour la plupart des corpus hormis gsd et sequoia. Si l'on établit un parallèle avec la table~\ref{oovPercent}, sequoia avait un haut pourcentage d'OOV, ce qui indique une très grande différences dans le vocabulaire entre le trainset et le testset de Sequoia. La DKL nous indique qu'en plus, il y une grande quantité d'information différentes entre les deux ensembles, nous nous attendons à de faibles performances pour notre modèle. En revanche, gsd avait un faible pourcentage d'oov or sa divergence est grande donc une grande quantité d'information sera perdu entre le trainset et le testset ce qui peut nous faire dire que notre modèle peut faire de mauvais résultat entre ces deux ensembles.
+On constate que les valeurs de DKL sont relativement faibles entre le trainset et le testset pour la plupart des corpus hormis gsd et sequoia. Si l'on établit un parallèle avec la table~\ref{oovPercent}, sequoia avait un haut pourcentage d'OOV, ce qui indique une très grande différence dans le vocabulaire entre le trainset et le testset de Sequoia. La DKL nous indique qu'en plus, il y une grande quantité d'informations différentes entre les deux ensembles, nous nous attendons donc à de faibles performances pour notre modèle. En revanche, gsd avait un faible pourcentage d'OOV or sa divergence est grande donc une grande quantité d'informations sera perdue entre le trainset et le testset : notre modèle donnera probablement de mauvais résultats entre ces deux ensembles.
 
-Pour ce qui est des ensembles de test foot et natdis, les valeurs de divergence sont relativement élevé ce qui n'est pas une surprise étant données qu'il s'agit d'ensemble traitant de domaine différents de l'ensemble d'apprentissage. On s'attend évidemment à avoir de faible performance sur ces ensembles de test ci. 
+Pour ce qui est des ensembles de test foot et natdis, les valeurs de divergence sont relativement élevées ce qui n'est pas une surprise étant donné qu'il s'agit d'ensembles traitant de domaines différents de l'ensemble d'apprentissage. On s'attend évidemment à avoir de faibles performances sur ces ensembles. 
 
 \subsubsection{Perplexité}
-Nous passons maintenant à la dernière metrique permettant d'évaluer nos ensembles de données. La perplexité est une autre métrique de la théorie de l'information et s'appuie, comme pour la divergence de KullBack-Leibler, sur l'entropie de Shannon. la perplexité au sens de la théorie de l'information est tous simplement $PP\footnote{On note PP pour la perplexité dans la suite du rapport} = 2^{H(p)}$ où $H(p)$ est l'entropie. 
-Nous avons vu que l'entropie est la quantité d'information moyenne requise pour coder le résultat d'une variable aléatoire. La perplexité est donc l'exponentiation de l'entropie et correspond donc au nombre d'élément que l'on peut coder en sortie de notre distribution de probabilité $p$. Ainsi, dans le contexte de l'apprentissage machine, la perplexité nous permet d'approcher la quantité d'information que l'on peut espérer via l'apprentissage de notre modèle sur cette distribution de probabilité $p$(ou notre ensemble d'apprentissage dans notre cas). Une faible valeur de perplexité nous indique que notre modèle pourra prédire correctement des données, à l'inverse une grande perplexité signifie que notre modèle aura du mal à prédire des données, il y aura une plus grande incertitude sur les prédictions. 
+Nous passons maintenant à la dernière metrique permettant d'évaluer nos ensembles de données. La perplexité est une autre métrique de la théorie de l'information et s'appuie, comme pour la divergence de KullBack-Leibler, sur l'entropie de Shannon. la perplexité au sens de la théorie de l'information est tout simplement $PP\footnote{On note PP pour la perplexité dans la suite du rapport} = 2^{H(p)}$ où $H(p)$ est l'entropie. 
+Nous avons vu que l'entropie est la quantité d'informations moyenne requise pour coder le résultat d'une variable aléatoire. La perplexité est donc l'exponentiation de l'entropie et correspond au nombre d'éléments que l'on peut coder en sortie de notre distribution de probabilité $p$. Ainsi, dans le contexte de l'apprentissage machine, la perplexité nous permet d'approcher la quantité d'informations que l'on peut espérer obtenir via l'apprentissage de notre modèle sur cette distribution de probabilité $p$(ou l'ensemble d'apprentissage dans notre cas). Une faible valeur de perplexité nous indique que notre modèle pourra prédire correctement des données, à l'inverse une grande perplexité signifie que notre modèle aura du mal à prédire les données, il y aura une plus grande incertitude sur les prédictions. 
 
-Pour les calculs de perplexité, nous sommes passer en échelle logarithimique en base $e$ pour évité l'effet d'underflow du à de faible valeurs de probabilité. Nous utilisons du coup une exponentiation par la constante $e$ car nous utilisons le logarithme népérien. De plus, la distribution de probabilité que nous utilisons est celle du modèle trigram $P(w_i | w_{i-2}, w_{i-1}) = \frac{cout(w_{i-2}, w_{i-1}, w_i)}{count(w_{i-2}, w_{i-1})}$ et le calcul de perplexité que nous faisons est donc le suivant : 
+Pour les calculs de perplexité, nous sommes passé en échelle logarithimique en base $e$ pour éviter l'effet d'underflow dû à de faibles valeurs de probabilité. Nous utilisons par conséquent une exponentiation par la constante $e$ car nous utilisons le logarithme népérien. De plus, la distribution de probabilité que nous utilisons est celle du modèle trigram $P(w_i | w_{i-2}, w_{i-1}) = \frac{cout(w_{i-2}, w_{i-1}, w_i)}{count(w_{i-2}, w_{i-1})}$ et le calcul de perplexité que nous faisons est donc le suivant : 
 
 $PP = e^{(-\sum^N_{i = 1}ln(P(w_i | w_{i-2}, w_{i-1})))/ N}$
 
@@ -276,20 +283,81 @@ corpus & trainset & testset & devset \\
 \label{perplexityTable}
 \end{table}
 
-La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entrainement de gsd et l'ensemble d'entrainement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce au mots les plus ambigu de chaque corpus. Si l'on regarde le jupyter-notebook, ces ensembles possèdent les mots les plus ambigu des corpus avec notamment le mot 'A' ayant plus de 6 labels différents associée dans l'ensemble de train ftb.
+La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entraînement de gsd et l'ensemble d'entraînement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce aux mots les plus ambigus de chaque corpus. Si l'on regarde le jupyter-notebook sur les mots les plus ambigus de chaque corpus, ces ensembles possèdent les mots les plus ambigus des corpus avec notamment le mot 'A' ayant plus de 6 étiquettes différentes associées dans l'ensemble de train ftb.
 
 \chapter{Classifieur multi-classe}
 \section{Arbre de décision}
 
-Pour résoudre notre problème de PoS tagging, nous avons choisi d'implémenter un arbre de décision. 
+Pour résoudre notre problème de PoS Tagging, nous avons choisi d'implémenter un arbre de décision. Il s'agit d'un algorithme qui fabrique un arbre binaire dont un chemin dans cet arbre est une suite de tests à effectuer sur une donnée pour ensuite arriver à une prédiction au niveau des feuilles de l'arbre. Contrairement à d'autres algorithmes de machine learning, celui-ci est un algorithme qui permet de comprendre les prédictions effectuées. C'est un algorithme "boîte blanche" contrairement à d'autres qui sont des algorithmes "boîte noir" (dont les exemples les plus connus sont les réseaux de neurone). 
+Si l'on souhaite comprendre une prédiction, il suffit de refaire le chemin de décision dans l'arbre. 
+
+La construction de l'arbre en revanche est un peu plus subtile que pour la prédiction. Nous suivons l'algorithme C4.5 qui est une amélioration de l'algorithme ID3.
+
+\begin{algorithm}
+\begin{minipage}[t]{20cm}
+\caption{Algorithme de contruction de l'arbre de décision}
+\label{buildTree}
+\begin{algorithmic}[1]
+\Function{buildTree}{$X,Y, max\_depth$}
+\If{$taille(X) < threshold \lor taille(Y) < threshold \lor max\_depth == 0$}
+\State \textbf{return} $max\{P(c)\footnote{où P(c) est la probabilité d'apparition de la classe c dans Y}|\forall c \in Y\}$
+\Else
+\State $bestTest, Xyes, Yyes, Xno, Yno \gets meilleurTest(X, Y)$
+\State $left \gets buildTree(Xyes, Yyes, max\_depth - 1)$
+\State $right \gets buildTree(Xno, Yno, max\_depth - 1)$
+\State \textbf{return} $(bestTest, left, right)$
+\EndIf
+\EndFunction
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{minipage}[t]{20cm}
+\caption{Algorithme de choix du meilleur test}
+\label{getBestTest}
+\begin{algorithmic}[1]
+\Function{meilleurTest}{$X,Y$}
+\State $bestTest \gets (0,0)$
+\State $bestXyes \gets \emptyset$
+\State $bestYyes \gets \emptyset$
+\State $bestXno \gets \emptyset$
+\State $bestYno \gets \emptyset$
+\ForAll {$features \in X$}
+\State $\overline{f} \gets select\_test(features)$
+\State $yes\_answer \gets yes\_answer \cup \{y | \forall y \in Y, y \leq \overline{f} \}$
+\State $no\_answer \gets no\_answer \cup \{y | \forall y \in Y, y > \overline{f} \}$
+\State $score \gets computeScore(yes\_answer, no\_answer)$
+\If {score is better than bestScore}
+
+\State $bestTest \gets (\overline{f}, features)$
+\State $bestYyes \gets yes\_answer$
+\State $bestYno \gets no\_answer$
+ \State $bestXyes \gets \{x_y |\forall x \in X, y \in bestYyes\}$
+ \State $bestXno \gets \{x_y |\forall x \in X, y \in bestYno\}$
+\EndIf
+\EndFor
+\State \textbf{return} $bestTest, bestXyes, bestYyes, bestXno, bestYno$
+\EndFunction
+\end{algorithmic}
+\end{minipage}
+\end{algorithm}
+
+
+\subsection{Hyper-paramètres}
+
+<<<<<<< HEAD
+Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètre permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
+
+Nous avons également deux autres hyper-paramètres importanst permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de test. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. 
 
 \chapter*{Plus tard}
 
-Dans notre projet, nous utilisons la méthode de la validation croisé. Elle consiste à entrainer notre modèle sur une instance d'hyper-paramètre donnée grâce à l'ensemble puis a testé notre modéle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètre et on recommence. Le but étant de trouver l'instance d'hyper-paramètre maximisant le score du modèle sur l'ensemble de test.
-La question que l'on peut se poser est alors : Pourquoi ne pas utilisé l'ensemble d'apprentissage pour évaluer le score du modèle ? 
-Tous simplement pour éviter que le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle perd alors les paramètres lui permettant d'avoir les charactèristiques général du problème et gagne en précision sur les données spécifique de l'ensemble d'apprentissage.
+Dans notre projet, nous utilisons la méthode de la validation croisée. Elle consiste à entraîner notre modèle sur une instance d'hyper-paramètres donnée grâce à l'ensemble puis à tester notre modéle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètres et on recommence. Le but est de trouver l'instance d'hyper-paramètres maximisant le score du modèle sur l'ensemble de test.
+La question que l'on peut se poser est alors : pourquoi ne pas utiliser l'ensemble d'apprentissage pour évaluer le score du modèle ? 
+Tout simplement pour éviter le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle gagne alors en précision spécifiquement sur l'ensemble d'apprentissage, mais perd en généralité : testé sur d'autres ensembles de données, les résultats seront mauvais.
 
-Le but de la validation croisé est donc d'évité se phénomène en monitorant l'évolution du modèles grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue alors cela signifie que le modèle est probablement entrain de sur-apprendre. 
-L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleur instance d'hyper-paramètre trouver. Parfois certains jeu de données peuvent ne pas avoir besoin d'ensemble de développement mais c'est toujours mieux de tester une dernière fois notre modèle sur d'autre jeu de données inconnue. 
+Le but de la validation croisée est donc d'éviter ce phénomène en monitorant l'évolution du modèle grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue, alors cela signifie que le modèle est probablement en train de sur-apprendre. 
+L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleure instance d'hyper-paramètres trouvée. Parfois certains jeux de données peuvent ne pas avoir besoin d'ensembles de développement, mais il est toujours préférable de tester une dernière fois notre modèle sur d'autre jeu de données inconnue. 
 
 \end{document}
