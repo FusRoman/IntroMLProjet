@@ -51,22 +51,18 @@ def extract_features(s, i, transform=lambda x: x):
     return tuple(f(s, i, transform) for f in features().values())
 
 
-def preprocessSentence(dataset):
-    begin_s = "<s>"
-    end_s = "</s>"
-    for d in dataset.data:
-        d.sentence = [begin_s, begin_s] + d.sentence + [end_s, end_s]
-        d.labels = [begin_s, begin_s] + d.labels + [end_s, end_s]
-
 # extrait les features de tous le corpus train
 def buildFeature(dataset):
-    preprocessSentence(dataset)
+    begin_s = "<s>"
+    end_s = "</s>"
+    
     X = []
     Y = []
     for d in dataset.data:
-        X += [extract_features(d.sentence, i, transform=hash)
-              for i in range(2, len(d.sentence) - 3)]
-        Y += d.labels[2:-3]
+        sentence = [begin_s, begin_s] + d.sentence + [end_s, end_s]
+        X += [extract_features(sentence, i, transform=hash)
+              for i in range(2, len(sentence) - 2)]
+        Y += d.labels
     return np.array(X), np.array(Y)
 
 
@@ -108,9 +104,9 @@ class DecisionTreeClassifier:
             res -= prob * math.log2(prob)
         return res
     
-    # Fonction permettant de calculer le degé d'impureté de l'ensemble Y
+    # Fonction permettant de calculer le degré d'impureté de l'ensemble Y
     def computeGiniImpurity(self, Y):
-        return 1 - np.sum( (occur / Y.size) ** 2 for _, occur in Counter(Y).items())
+        return 1 - np.sum( (occur / np.shape(Y)[0]) ** 2 for _, occur in Counter(Y).items())
 
     def mean(self, X, f):
         return np.mean(np.unique(X[:, f]))
@@ -137,6 +133,7 @@ class DecisionTreeClassifier:
         # Plus l'entropie est faible, plus l'on a d'information sur l'ensemble actuelle
         if self.split_criterion == "entropy":
             entropyY = self.computeEntropy(Y)
+            
 
         # Les variables permettant de garder les données du meilleurs test
         bestFeature = 0
@@ -159,8 +156,7 @@ class DecisionTreeClassifier:
             elif self.gen_test == "median":
                 test = self.median(X, f)
 
-            #print(test)
-            #print(type(Y))
+
 
             yes_index = X[:, f] <= test
             no_index = np.logical_not(yes_index)
@@ -308,9 +304,9 @@ class DecisionTreeClassifier:
             print('-', end="")
             print(s, end="")
             print('-> ', end="")
-        if type(tree) == int: # leaf
+        if type(tree) == int: # feuille
             print("class ", self.labelClass[tree])
-        else: # internal node
+        else: # noeud interne
             feature, test = tree[0]
             feature = list(features().keys())[feature]
             print(feature, " <= ", test, " ?")
