@@ -3,10 +3,13 @@ import numpy as np
 import math
 from collections import Counter
 import features as ft
+import time
 
 # basé sur l'algorithme ID3
+
+
 class DecisionTreeClassifier:
-    def __init__(self, X, Y, max_depth=2, threshold=2, split_criterion = "entropy", gen_test="mean"):
+    def __init__(self, X, Y, max_depth=2, threshold=2, split_criterion="entropy", gen_test="mean"):
         self.feature = X
         self.gold = Y
         self.classLabel = dict()
@@ -17,7 +20,7 @@ class DecisionTreeClassifier:
         self.gen_test = gen_test
 
         # récupére les classes de chacun des labels
-        occurLab = Counter(self.gold)        
+        occurLab = Counter(self.gold)
         id = 0
         for k, _ in occurLab.most_common():
             self.classLabel[k] = id
@@ -26,7 +29,6 @@ class DecisionTreeClassifier:
 
         self.gold = np.array([self.classLabel[g] for g in self.gold])
 
-
     def setNewParam(self, newParam):
         self.max_depth = newParam[0]
         self.split_criterion = newParam[1]
@@ -34,24 +36,30 @@ class DecisionTreeClassifier:
 
     # Fonction permettant de calculer l'entropie d'un ensemble
     def computeEntropy(self, Y):
-        res = 1
-        lenY = np.shape(Y)[0]
-        occurGold = Counter(Y)
-        for _, occur in occurGold.items():
-            prob = occur / lenY
-            res -= prob * math.log2(prob)
+        _, c = np.unique(Y, return_counts=True)
+        t = c / np.shape(Y)[0]
+        r = t * np.log2(t)
+        res = -np.sum(r)
         return res
-    
+
     # Fonction permettant de calculer le degré d'impureté de l'ensemble Y
     def computeGiniImpurity(self, Y):
-        return 1 - np.sum( (occur / np.shape(Y)[0]) ** 2 for _, occur in Counter(Y).items())
+        _, c = np.unique(Y, return_counts=True)
+        t = np.power((c / np.shape(Y)[0]), 2)
+        res = 1 - np.sum(t)
+        return res
 
-    def mean(self, X, f):
-        return np.mean(np.unique(X[:, f]))
-    
-    def median(self, X, f):
-        return np.median(np.unique(X[:, f]))
-        
+    def mean(self, X, nbfeature):
+        res = np.zeros(nbfeature)
+        for f in range(nbfeature):
+            res[f] = np.mean(np.unique(X[:, f]))
+        return res
+
+    def median(self, X, nbfeature):
+        res = np.zeros(nbfeature)
+        for f in range(nbfeature):
+            res[f] = np.median(np.unique(X[:, f]))
+        return res
 
     # Fonction permettant de généré un ensemble de test dans le but de splitté au mieux les données
     # en deux sous_ensemble. Les labels doivent être le mieux répartie entre les deux sous_ensemble.
@@ -59,56 +67,49 @@ class DecisionTreeClassifier:
 
     def getBestTest(self, X, Y):
 
-        #print(type(X))
-        #print(type(Y))
-
         _, nbFeature = np.shape(X)
         nbGold = np.shape(Y)[0]
-        
+
         entropyY = 0
 
         # Calcule de l'entropie de l'ensemble contenant les données actuelle du noeud.
         # Plus l'entropie est faible, plus l'on a d'information sur l'ensemble actuelle
         if self.split_criterion == "entropy":
             entropyY = self.computeEntropy(Y)
-            
 
         # Les variables permettant de garder les données du meilleurs test
         bestFeature = 0
         bestScore = 100000000
-        
+
         if self.split_criterion == "entropy":
             bestScore = -1000000000
-            
+
         bestTest = 0
         bestYesLabel = None
-        bestYesSample = None
         bestNoLabel = None
-        bestNoSamples = None
+        
+        bestYesIndex = None
+        bestNoIndex = None
+        
+        if self.gen_test == "mean":
+            test = self.mean(X, nbFeature)
+        elif self.gen_test == "median":
+            test = self.median(X, nbFeature)
+
 
         # On regarde chacune des features
         for f in range(nbFeature):
-
-            if self.gen_test == "mean":
-                test = self.mean(X, f)
-            elif self.gen_test == "median":
-                test = self.median(X, f)
-
-
-
-            yes_index = X[:, f] <= test
+                
+            yes_index = X[:, f] <= test[f]
             no_index = np.logical_not(yes_index)
 
-            yes_samples = X[yes_index]
             yes_label = Y[yes_index]
-            
-            no_samples = X[no_index]
             no_label = Y[no_index]
-            
+
             score = 0
-            
+
             # Si le test permet de séparé les données
-            if yes_label.size > 0 and no_label.size > 0 and yes_samples.size > 0 and no_samples.size > 0:
+            if yes_label.size > 0 and no_label.size > 0:
 
                 if self.split_criterion == "entropy":
                     # On calcule la quantité d'information contenue dans l'ensemble des données
@@ -124,19 +125,17 @@ class DecisionTreeClassifier:
                     Ichild = probaYes * entropyYes + probaNo * entropyNo
                     # On calcule le gain d'information obtenue par le test
                     score = entropyY - Ichild
-                    
+
                     # On récupére le test permettant de maximiser le gain d'information
                     if score > bestScore:
                         bestScore = score
                         bestFeature = f
-                        bestTest = test
+                        bestTest = test[f]
                         bestYesLabel = yes_label
-                        bestYesSample = yes_samples
                         bestNoLabel = no_label
-                        bestNoSamples = no_samples
-                    
-                    
-                
+                        bestYesIndex = yes_index
+                        bestNoIndex = no_index
+
                 if self.split_criterion == "gini":
                     # On calcule le degrés d'impureté des deux ensembles no et yes
                     impurityLeft = self.computeGiniImpurity(yes_label)
@@ -144,21 +143,22 @@ class DecisionTreeClassifier:
                     probaYes = np.shape(yes_label)[0] / nbGold
                     probaNo = np.shape(no_label)[0] / nbGold
                     score = probaYes * impurityLeft + probaNo * impurityright
-                    
-                    # On récupére le test permettant de minimiser l'impureté 
+
+                    # On récupére le test permettant de minimiser l'impureté
                     if score < bestScore:
                         bestScore = score
                         bestFeature = f
-                        bestTest = test
+                        bestTest = test[f]
                         bestYesLabel = yes_label
-                        bestYesSample = yes_samples
                         bestNoLabel = no_label
-                        bestNoSamples = no_samples
+                        bestYesIndex = yes_index
+                        bestNoIndex = no_index
 
+        
         # On renvoie les données du test nous permettant d'obtenir le plus d'information
         # sur les données du noeud. On a splitté les données en deux sous_ensemble contenant
         # chacun plus d'information sur les données à prédire
-        return bestFeature, bestTest, bestNoLabel, bestNoSamples, bestYesLabel, bestYesSample
+        return bestFeature, bestTest, bestNoLabel, X[bestNoIndex], bestYesLabel, X[bestYesIndex]
 
     # Fonction permettant de généré l'arbre de décision grâce au donnée fournie au constructeur
     # de DecisionTree
@@ -166,11 +166,11 @@ class DecisionTreeClassifier:
     def fit(self):
 
         def build_tree(X, Y, max_depth):
-
+            
             # test permettant de savoir si l'on a atteint une feuille
             # on s'arrête si l'on atteint la profondeur maximal ou que le nombre de données
             # du noeud passe sous la barre d'un certain seuil
-            # ou que l'ensemble des labels ne contient qu'un seul type de labels, 
+            # ou que l'ensemble des labels ne contient qu'un seul type de labels,
             # (cela signifie que l'arbre à déjà réussi à discriminer ce labels pour cette branche)
             if np.shape(X)[0] <= self.threshold or np.shape(Y)[0] <= self.threshold or max_depth == 0 or np.shape(np.unique(Y))[0] == 1:
                 return Counter(Y).most_common(1)[0][0]
@@ -181,8 +181,12 @@ class DecisionTreeClassifier:
                 bestFeature, bestTest, Yno, Xno, Yyes, Xyes = self.getBestTest(
                     X, Y)
 
-                # Si on n'a pas réussi à séparé les données, on créée une feuille
-                if Yno.size == 0 or Xno.size == 0 or Yyes.size == 0 or Xyes.size == 0:
+                
+                # Si on n'a pas réussi à séparé les données, on crée une feuille
+                if (Yno is None
+                    or Xno is None
+                    or Yyes is None
+                        or Xyes is None):
                     return Counter(Y).most_common(1)[0][0]
 
                 # On construit la branche gauche de l'arbre avec les données ayant passé le test
@@ -211,29 +215,28 @@ class DecisionTreeClassifier:
             res.append(self.predictSingleWord(node, feature))
         return res
 
-    # Fonction renvoyant le pourcentage de prédiction correcte pour un arbre et un 
+    # Fonction renvoyant le pourcentage de prédiction correcte pour un arbre et un
     # ensemble de test donnée + la matrice de confusion du modèle
     def modelScore(self, tree, X, Y):
-        
-        occurLab = Counter(Y)        
+
+        occurLab = Counter(Y)
         id = list(self.classLabel.values())[-1]
         for k, _ in occurLab.most_common():
             if not k in self.classLabel:
                 self.classLabel[k] = id
                 self.labelClass[id] = k
                 id += 1
-        
+
         nbLabel = len(self.classLabel.values())
-        cm = np.zeros( (nbLabel, nbLabel) )
-        
+        cm = np.zeros((nbLabel, nbLabel))
+
         Ypredict = self.predict(tree, X)
         score = 0
         for ygold, ypredict in zip(Y, Ypredict):
             cm[self.classLabel[ygold], self.classLabel[ypredict]] += 1
             if ygold == ypredict:
                 score += 1
-        return ((score / len(Y)) * 100, cm)
-        
+        return (score / len(Y)) * 100, cm
 
     def showTree(self, tree, s='', depth=0):
         for _ in range(depth-1):
@@ -242,13 +245,11 @@ class DecisionTreeClassifier:
             print('-', end="")
             print(s, end="")
             print('-> ', end="")
-        if type(tree) == int: # feuille
+        if type(tree) == int:  # feuille
             print("class ", self.labelClass[tree])
-        else: # noeud interne
+        else:  # noeud interne
             feature, test = tree[0]
             feature = list(ft.features().keys())[feature]
             print(feature, " <= ", test, " ?")
             self.showTree(tree[1], s='Y', depth=depth+1)
             self.showTree(tree[2], s='N', depth=depth+1)
-
-

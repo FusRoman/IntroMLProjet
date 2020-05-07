@@ -5,46 +5,75 @@ import itertools
 
 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import dataAnalysis as da
 import DecisionTreeClassifier as dtree
 import features as ft
 
 
-def analyzeDecisionTree(nameDataSet, maximum_depth=30, verbose=False):
+saveFigPath = "../results/"
 
-    trainSet, testSet = da.listeCorpus[nameDataSet].trainDataSet, da.listeCorpus[nameDataSet].testDataSet
+
+def analyzeDecisionTree(nameDataSet, nameTestSet=None, maximum_depth=25, verbose=False):
+
+    localSaveFig = saveFigPath + "decisionTree/"
+
+    if nameTestSet is None:
+        if da.listeCorpus[nameDataSet].trainExist and da.listeCorpus[nameDataSet].testExist:
+            trainSet, testSet = da.listeCorpus[nameDataSet].trainDataSet, da.listeCorpus[nameDataSet].testDataSet
+        else:
+            print("trainSet or testSet for corpus " +
+                  nameDataSet + " not available")
+            return 1
+    else:
+        if da.listeCorpus[nameDataSet].trainExist and da.listeCorpus[nameTestSet].testExist:
+            trainSet, testSet = da.listeCorpus[nameDataSet].trainDataSet, da.listeCorpus[nameTestSet].testDataSet
+        else:
+            print("trainSet for " + nameDataSet +
+                  " or testSet for " + nameTestSet + " not available")
+            return 1
 
     Xtrain, Ytrain = ft.buildFeature(trainSet)
     Xtest, Ytest = ft.buildFeature(testSet)
 
     decisionTree = dtree.DecisionTreeClassifier(Xtrain, Ytrain)
 
-    bestScore = -1
+    globalBestScore = -1
     bestTree = None
     bestParam = None
     bestConfusionMatrix = None
 
-    fig, axs = plt.subplots(2, 2, figsize=(25, 14))
+    fig, axs = plt.subplots(2, 2, figsize=(20, 14))
+
     coordAxesX = 0
     coordAxesY = 0
 
-    fig.suptitle("Accuracy analysis of decision tree on " +
-                 nameDataSet + " dataset")
+    if nameTestSet is None:
+        print("Beginning of the model analysis between ",
+              nameDataSet, " train and ", nameDataSet, " test")
+        figTitle = "Accuracy analysis of decision tree on " + nameDataSet + " dataset"
+    else:
+        print("Beginning of the model analysis between ",
+              nameDataSet, " train and ", nameTestSet, " test")
+        figTitle = "Accuracy analysis of decision tree between " + \
+            nameDataSet + " train and " + nameTestSet + " test"
+
+    fig.suptitle(figTitle)
 
     pastTotTime = time.time()
 
     for split_criterion in ["gini", "entropy"]:
         for gen_test in ["median", "mean"]:
-            
+
             if verbose:
                 print("split_criterion : ", split_criterion,
                       " / gen_test : ", gen_test)
-                
-                
-            actualBestScore = -1
+
+            localBestScore = -1
+            localBestDepth = -1
             listScoreTrain = []
             listScoreTest = []
-            
+
             for i in range(1, maximum_depth + 1):
 
                 decisionTree.setNewParam((i, split_criterion, gen_test))
@@ -64,22 +93,23 @@ def analyzeDecisionTree(nameDataSet, maximum_depth=30, verbose=False):
                 listScoreTest.append(scoreTest)
 
                 # get best score
-                if scoreTest > bestScore:
-                    bestScore = scoreTest
+                if scoreTest > globalBestScore:
+                    globalBestScore = scoreTest
                     bestTree = tree
                     bestConfusionMatrix = cmTest
                     bestParam = (i, split_criterion, gen_test)
-                    
-                    
-                if verbose and scoreTest > actualBestScore:
+
+                if verbose and scoreTest > localBestScore:
+                    localBestScore = scoreTest
+                    localBestDepth = i
                     print("      Max depth : ", i, "score on train : ", scoreTrain,
-                              "  Actual score on test : ", scoreTest, " Highscore !!")
+                          "  Actual score on test : ", scoreTest, " Highscore !!")
                 elif verbose:
                     print("      Max depth : ", i, "score on train : ",
                           scoreTrain, "  Actual score on test : ", scoreTest)
-                    
-                    
+
             # make the axis
+
             axs[coordAxesX, coordAxesY].plot(
                 range(1, maximum_depth + 1), listScoreTrain, label="trainSet")
             axs[coordAxesX, coordAxesY].plot(
@@ -87,13 +117,13 @@ def analyzeDecisionTree(nameDataSet, maximum_depth=30, verbose=False):
             axs[coordAxesX, coordAxesY].set_title(
                 split_criterion + " / " + gen_test)
 
-            axs[coordAxesX, coordAxesY].annotate(("bestScore : " + str(bestScore)),
-                                                 (bestParam[0], bestScore),
+            axs[coordAxesX, coordAxesY].annotate(("bestScore : " + str(localBestScore)),
+                                                 (localBestDepth, localBestScore),
                                                  xycoords='data',
                                                  textcoords='axes fraction',
                                                  xytext=(0.95, 0.18),
                                                  arrowprops=dict(facecolor='black',
-                                                                 shrink=0.04, width=1, headwidth=8),
+                                                                 shrink=0.001, width=1, headwidth=8),
                                                  horizontalalignment='right', verticalalignment='top')
 
             axs[coordAxesX, coordAxesY].legend()
@@ -106,26 +136,85 @@ def analyzeDecisionTree(nameDataSet, maximum_depth=30, verbose=False):
         ax.set(xlabel='max_depth', ylabel='accuracy')
         ax.label_outer()
 
-    cm_fig = showConfusionMatrix(bestConfusionMatrix, decisionTree.classLabel.keys()
-                                 , title="DecisionTree confusion matrix with param ("
-                                 + "max_depth:" + str(bestParam[0])
-                                 + ", split_criterion:" + str(bestParam[1])
-                                 + ", gen_test:" + str(bestParam[2])
-                                 + ")")
+    if nameTestSet is None:
+        cm_Title = ("DecisionTree confusion matrix between "
+                    + nameDataSet + " trainset and "
+                    + nameDataSet + " testset with best param ("
+                    + "max_depth:" + str(bestParam[0])
+                    + ", split_criterion:" + str(bestParam[1])
+                    + ", gen_test:" + str(bestParam[2])
+                    + ")")
+    else:
+        cm_Title = ("DecisionTree confusion matrix between "
+                    + nameDataSet + " trainset and "
+                    + nameTestSet + " testset with best param ("
+                    + "max_depth:" + str(bestParam[0])
+                    + ", split_criterion:" + str(bestParam[1])
+                    + ", gen_test:" + str(bestParam[2])
+                    + ")")
 
-    fig.show()
+    cm_fig = showConfusionMatrix(
+        bestConfusionMatrix, decisionTree.classLabel.keys(), title=cm_Title)
 
-    cm_fig.show()
+    if nameTestSet is None:
+        saveFig = (localSaveFig
+                       + "decisionTreeAnalysis_between_"
+                       + nameDataSet + "_train_"
+                       + nameDataSet + "_test")
+        saveCM = (localSaveFig
+                      + "decisionTree_confusionMatrix_between_"
+                      + nameDataSet + "_train_"
+                      + nameDataSet + "_test")
+    else:
+        saveFig = (localSaveFig
+                       + "decisionTreeAnalysis_between_"
+                       + nameDataSet + "_train_"
+                       + nameTestSet + "_test")
+        saveCM = (localSaveFig
+                      + "decisionTree_confusionMatrix_between_"
+                      + nameDataSet + "_train_"
+                      + nameTestSet + "_test")
 
-    fig.savefig("decisionTreeAnalysis_on_" + nameDataSet)
-    cm_fig.savefig("decisionTree_confusionMatrix_on_" + nameDataSet)
+    fig.savefig(saveFig)
+    cm_fig.savefig(saveCM)
 
-    print("decisionTreeAnalysis on " + nameDataSet + " finished in " +
-          str(time.time() - pastTotTime) + " secondes")
+    if nameTestSet is None and da.listeCorpus[nameDataSet].devExist:
+        devSet = da.listeCorpus[nameDataSet].devDataSet
 
-    print("best score is ", bestScore, " with param ", bestParam)
+        Xdev, Ydev = ft.buildFeature(devSet)
+        scoreDev, cmDev = decisionTree.modelScore(bestTree, Xdev, Ydev)
 
-    return bestTree, bestParam
+        print("score on devDataSet " + nameDataSet + " is " +
+              str(scoreDev) + " with best param " + str(bestParam))
+
+        cm_DevTitle = ("DecisionTree confusion matrix between "
+                       + nameDataSet + " trainset and "
+                       + nameDataSet + " devset with best param ("
+                       + "max_depth:" + str(bestParam[0])
+                       + ", split_criterion:" +
+                       str(bestParam[1])
+                       + ", gen_test:" + str(bestParam[2])
+                       + ")")
+
+        cmfig_dev = showConfusionMatrix(
+            cmDev, decisionTree.classLabel.keys(), title=cm_DevTitle)
+        cmfig_dev.savefig(
+            localSaveFig + "decisionTree_confusionMatrix_on_devset_" + nameDataSet)
+
+        print("decisionTreeAnalysis on " + nameDataSet + " finished in " +
+              str(time.time() - pastTotTime) + " secondes")
+
+        print("results graph can be shown in " + localSaveFig + " location")
+
+        return bestTree, bestParam, (nameDataSet, scoreDev)
+
+    else:
+        print("decisionTreeAnalysis on " + nameDataSet + " finished in " +
+              str(time.time() - pastTotTime) + " secondes")
+
+        print("results graph can be shown in " + localSaveFig + " location")
+
+        return bestTree, bestParam, None
 
 
 def showConfusionMatrix(cm, target_names, title='Confusion matrix', cmap=None, normalize=True):
