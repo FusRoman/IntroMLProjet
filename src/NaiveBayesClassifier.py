@@ -7,7 +7,6 @@ import math
 
 # https://machinelearningmastery.com/naive-bayes-classifier-scratch-python/
 
-# Pour l'instant on sépare par mots mais je suis pas sûr de moi
 # Renvoie un dictionnaire dont les entrées sont les classes,
 # et les valeurs les données de cette classe
 def separateByClass(X, Y):

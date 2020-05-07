@@ -11,6 +11,7 @@
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{amsmath}
+\usepackage{graphicx}
 
 
 
@@ -286,6 +287,27 @@ corpus & trainset & testset & devset \\
 La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entrainement de gsd et l'ensemble d'entrainement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce au mots les plus ambigu de chaque corpus. Si l'on regarde le jupyter-notebook sur les mots les plus ambigu de chaque corpus, ces ensembles possèdent les mots les plus ambigu des corpus avec notamment le mot 'A' ayant plus de 6 labels différents associée dans l'ensemble de train ftb.
 
 \chapter{Classifieurs multi-classe}
+
+\section{Features}
+
+Bien que nous ayons deux classifieurs, nous avons décidé de garder les mêmes features pour les deux, essentiellement par manque de temps. Si nous avions pu passer plus de temps sur le classifieur naïf bayésien, nous aurions probablement fini par avoir deux ensembles de features spécialisés. Dans la suite du rapport, l'ensemble des features sera noté $F$.
+
+Les features sont :
+\begin{itemize}
+	\item word : le mot haché
+	\item pos : la position du mot dans la phrase
+	\item first : si le mot est positionné en premier. Concrètement la valeur de cette feature dépend uniquement de la position du mot et paraît donc superflu au premier abord, mais nous avons pensé que cela pourrait aider l'arbre de décision sur lequel nous nous sommes concentrés.
+	\item last : si le mot est positionné en dernier
+	\item len : la longueur du mot en nombre de caractères
+	\item startUpper : si le mot démarre par une majuscule, ce qui peut aider à distinguer les noms propres
+	\item hasUpper : si le mot contient une majuscule
+	\item allUpper : si le mot n'est constitué que de majuscules
+	\item all-special : le mot n'est constitué que de caractères spéciaux, i.e ni alphabétiques, ni numériques
+	\item w-1, w-2, w+1, w+2 : les 4 mots environnants, hachés
+	\item prefix-1, prefix-2, prefix-3: respectivement le premier caractère, les deux premiers, et les trois premiers, tous hachés. Si le mot a moins de 3 caractères, certaines de ces features seront égales.
+	\item suffix-1, suffix-2, suffix-3 : similaires mais pour la fin du mot et pas le début.
+\end{itemize}
+
 \section{Arbre de décision}
 
 Pour résoudre notre problème de PoS tagging, nous avons choisi d'implémenter un arbre de décision. Il s'agit d'un algorithme qui fabrique un arbre binaire dont un chemin dans cette arbre est une suite de test à effectuer sur une donnée pour ensuite arriver à une prédiction au niveau des feuilles de l'arbre. Contrairement à d'autre algorithme de machine learning, celui-ci est un algorithme qui permet de comprendre les prédictions effectué par celui-ci. C'est un algorithme boite blanche contrairement à d'autre qui sont des algorithme boite noir comme les réseaux de neurone. 
@@ -369,7 +391,52 @@ Gini = 1 - \sum_{y \in yes\_answer}P(y)
 scoreTest = P(yes\_answer) * Gini_{yes\_answer} + P(no\_answer) * Gini_{no\_answer}
 \end{equation}
 
-Le coefficient de gini est utilisé pour mesuré les inégalités de répartition des labels entre l'ensemble yes\_answer et no\_answer. Le but est de réduire ce degré d'inégalité, c'est pour cela qu'on cherche le test ayant le score le plus faible. 
+Le coefficient de gini est utilisé pour mesuré les inégalités de répartition des labels entre l'ensemble yes\_answer et no\_answer. Le but est de réduire ce degré d'inégalité, c'est pour cela qu'on cherche le test ayant le score la plus faible valeur de scoreTest.
+
+\subsection{optimisation et validation croisé}
+
+Concernant l'implémentation de notre arbre de décision, Celle-ci a changé lorsque nous avons voulu effectué nos test pour la section resultat. La construction de l'arbre prenait en effet beaucoup trop de temps. La fonction fit() de la classe DecisionTreeClassifier était codé essentiellement avec des boucles for en python qui ralentissait sensiblement le temps d'éxecution. Nous avons alors changé l'implémentation et nous sommes passé sur des fonctions de la bibliothèque numpy. Cela à permis de réduire de façon significative le temps de calcul de nos arbre. En revanche, le temps de calcul sur les gros corpus GSD et FTB est toujours aussi long. 
+
+Pour la génération de nos résulats, nous utilisons la méthode de la validation croisé pour determiné les meilleurs hyper-paramètre de notre modèle. Elle consiste à entrainer notre modèle sur une instance d'hyper-paramètre donnée grâce à l'ensemble puis a testé notre modéle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètre et on recommence. Le but étant de trouver l'instance d'hyper-paramètre maximisant le score du modèle sur l'ensemble de test.
+La question que l'on peut se poser est alors : Pourquoi ne pas utilisé l'ensemble d'apprentissage pour évaluer le score du modèle ? 
+Tous simplement pour éviter le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle perd alors les paramètres lui permettant d'avoir les caractéristiques général du problème et gagne en précision sur les données spécifique de l'ensemble d'apprentissage.
+
+Le but de la validation croisé est donc d'évité ce phénomène en monitorant l'évolution du modèles grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue alors cela signifie que le modèle est probablement en train de sur-apprendre. 
+L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleur instance d'hyper-paramètre trouvé. Parfois certains jeu de données peuvent ne pas avoir besoin d'ensemble de développement mais c'est toujours mieux de tester une dernière fois notre modèle sur d'autre jeu de données inconnue. 
+
+\subsection{Resutats}
+
+Nous allons présenté dans cette section les différents résultats de nos tests sur les différents corpus avec notre modèle d'arbre de décision et les différents features. 
+
+Pour la présentation de nos résultats,nous dessinons des graphes au moyen de la bibliothèque python matpotlib qui permettent d'observer l'évolution du score de notre modèle en fonction des différents instance d'hyper-paramètre possible. Nous dessinons 4 sous-graphe qui permettent d'observer l'évolution de la courbe de score en fonction de la profondeur maximale de l'arbre. Les 4 sous-graphe permettent de rendre compte des deux hyper-paramètre concernant le calcul du score des tests et de la méthode de génération des tests. 
+
+Nous dessinons également la matrice de confusion qui nous permet de nous rendre compte des différents labels ayant été difficile à classer par notre modèle. Nous calculons la matrice de confusion entre l'ensemble d'entrainement et l'ensemble de test de chaque corpus. Nous calculons ensuite la matrice de confusion entre l'ensemble d'entrainement de chaque corpus avec les meilleurs hyper-paramètre et l'ensemble de test foot et natdis afin d'évaluer l'impact du changement de domaine. 
+
+Sur les performances de notre modèle d'arbre de decision sans changement de contexte, nous obtenons entre 70\% et un peu moins de 90\% de précision.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline
+\diagbox{training set}{test set} & test & foot test & natdis test \\
+\hline
+ sequoia & 89.68\% & 59.92\% & X \\
+ spoken  & 84.75\% & 47.21\% & X \\
+ pud     & 74.07\% & 57.70\% & X \\
+ partut  & 88.31\%  & 58.05\% & X \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Performance du modèle en pourcentage de bonne prédiction sur les labels avec les meilleurs hyper-paramètre}
+\label{performanceResults}
+\end{table}
+
+Les performances relativement élevé entre l'ensemble d'apprentissage et de test du même corpus sont cohérent vis-à-vis des mesures avec les métriques que nous avions calculer dans le chapitre 2. Seul l'ensemble pud à des performances inférieurs à 80\% mais cela s'explique par la mesure de l'out of vocabulary. Il s'agit de l'ensemble ayant la valeur d'OOV la plus élevé et donc ces performance sont plus faible que les autres.
+
+Pour les performances concerant les ensembles foot et natdis, il s'agit des ensembles ayant un contexte différent des ensembles d'apprentissage. Cela explique les faibles performances de notre modèle. 
+
+L'ensemble des graphes est disponible dans le dossier results/DecisionTree à partir de la racine du projet.
+
 \section{Classifieur naïf bayésien}
 
 En plus de l'arbre de décision, nous avons voulu implémenter un classifieur naïf bayésien. Cependant, par manque de temps notamment à cause des autres projets que nous devions réaliser en même temps, nous avons passé beaucoup moins de temps dessus ce qui explique en partie ses mauvais résultats.
@@ -390,16 +457,11 @@ Cette formule est le théorème de Bayes, d'où le nom du classifieur. Puisqu'on
 P(x \mid C) \cdot P(C)
 \end{equation}
 
-Malheureusement, $P(x \mid C)$ nécessiterait un nombre extrêmement grand de données pour pouvoir être calculé correctement. C'est pourquoi il faut faire une hypothèse supplémentaire sur les données, d'où le qualificatif "naïf" de la méthode de classification ; ici, on suppose que chaque feature suit une loi normale et qu'elle est indépendante des autres, ce qui n'est évidemment pas le cas la plupart du temps ; malgré tout, la classification naïve bayésienne est réputée assez efficace pour le PoS Tagging. En supposant une telle distribution, on peut utiliser l'équation suivante :
+Malheureusement, $P(x \mid C)$ nécessiterait un nombre extrêmement grand de données pour pouvoir être calculé correctement. C'est pourquoi il faut faire une hypothèse supplémentaire sur les données, d'où le qualificatif "naïf" de la méthode de classification ; ici, on suppose que chaque feature suit une loi normale et qu'elle est indépendante des autres, ce qui n'est évidemment pas le cas la plupart du temps ; malgré tout, la classification naïve bayésienne est réputée assez efficace pour le PoS Tagging. En supposant une telle distribution, on peut utiliser l'équation suivante, avec $x_i$ la feature $i$ de $x$, et $\mu_{C,i}$ et $\sigma_{C,i}$ respectivement la moyenne et l'écart type de cette feature pour les données de la classe $C$ :
 
 \begin{equation}
-P(x \mid C) = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac {1} {2} (\frac {x - \mu} {\sigma})^2}
+P(x \mid C) = \prod _{i \in F} \frac{1}{\sigma_{C,i} \sqrt{2 \pi}} e^{-\frac {1} {2} (\frac {x_i - \mu_{C,i}} {\sigma_{C,i}})^2}
 \end{equation}
-
-Avec $\mu$ la moyenne et $\sigma$ l'écart type, tous deux calculés plus tôt.
-
-
-\subsection{Résultats}
 
 
 \subsection{Hyper-paramètres}
@@ -408,20 +470,14 @@ Lors de l'implémentation, nous avons rencontré un souci sous la forme d'une di
 Après de rapides recherches, en remplaçant l'écart type par une valeur prédéfinie $\sigma$ dans ce cas, on obtient une formule avec des résultats satisfaisants. Cependant $\sigma$ ne doit être ni trop petit, ni trop grand. Nous avons décidé de faire de cette valeur un hyper-paramètre.
 
 
+\subsection{Résultats}
+
+
 \subsection{Idées de développement}
 
-Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
+Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes (en-dehors des bugs potentiels) pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
 
 Une solution serait de considérer différents types de features, par exemple booléennes, catégoriques, résultats de hachage, etc. Le calcul de probabilité effectué ensuite diffèrerait selon le type de la variable. Il reste à déterminer quelles catégories retenir, et quelles sont les fonctions qui y sont adaptées.
 
-
-\chapter*{Plus tard}
-
-Dans notre projet, nous utilisons la méthode de la validation croisé. Elle consiste à entrainer notre modèle sur une instance d'hyper-paramètre donnée grâce à l'ensemble puis a testé notre modéle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètre et on recommence. Le but étant de trouver l'instance d'hyper-paramètre maximisant le score du modèle sur l'ensemble de test.
-La question que l'on peut se poser est alors : Pourquoi ne pas utilisé l'ensemble d'apprentissage pour évaluer le score du modèle ? 
-Tous simplement pour éviter que le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle perd alors les paramètres lui permettant d'avoir les charactèristiques général du problème et gagne en précision sur les données spécifique de l'ensemble d'apprentissage.
-
-Le but de la validation croisé est donc d'évité se phénomène en monitorant l'évolution du modèles grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue alors cela signifie que le modèle est probablement entrain de sur-apprendre. 
-L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleur instance d'hyper-paramètre trouver. Parfois certains jeu de données peuvent ne pas avoir besoin d'ensemble de développement mais c'est toujours mieux de tester une dernière fois notre modèle sur d'autre jeu de données inconnue. 
 
 \end{document}
