@@ -286,27 +286,6 @@ corpus & trainset & testset & devset \\
 La table~\ref{perplexityTable} nous permet d'avoir les valeurs de perplexité pour chacun des ensembles de données de chaque corpus. On constate que l'ensemble d'entrainement de gsd et l'ensemble d'entrainement et test de ftb ont les valeurs les plus grandes de perplexité. On peut expliquer cela grâce au mots les plus ambigu de chaque corpus. Si l'on regarde le jupyter-notebook sur les mots les plus ambigu de chaque corpus, ces ensembles possèdent les mots les plus ambigu des corpus avec notamment le mot 'A' ayant plus de 6 labels différents associée dans l'ensemble de train ftb.
 
 \chapter{Classifieurs multi-classe}
-\section{Features}
-
-Bien que nous ayons deux classifieurs, nous avons décidé de garder les mêmes features pour les deux, essentiellement par manque de temps. Si nous avions pu passer plus de temps sur le classifieur naïf bayésien, nous aurions probablement fini par avoir deux ensembles de features spécialisés. Dans la suite du rapport, l'ensemble des features sera noté $F$.
-
-Les features sont :
-\begin{itemize}
-	\item word : le mot haché
-	\item pos : la position du mot dans la phrase
-	\item first : si le mot est positionné en premier. Concrètement la valeur de cette feature dépend uniquement de la position du mot et paraît donc superflu au premier abord, mais nous avons pensé que cela pourrait aider l'arbre de décision sur lequel nous nous sommes concentrés.
-	\item last : si le mot est positionné en dernier
-	\item len : la longueur du mot en nombre de caractères
-	\item startUpper : si le mot démarre par une majuscule, ce qui peut aider à distinguer les noms propres
-	\item hasUpper : si le mot contient une majuscule
-	\item allUpper : si le mot n'est constitué que de majuscules
-	\item all-special : le mot n'est constitué que de caractères spéciaux, i.e ni alphabétiques, ni numériques
-	\item w-1, w-2, w+1, w+2 : les 4 mots environnants, hachés
-	\item prefix-1, prefix-2, prefix-3: respectivement le premier caractère, les deux premiers, et les trois premiers, tous hachés. Si le mot a moins de 3 caractères, certaines de ces features seront égales.
-	\item suffix-1, suffix-2, suffix-3 : similaires mais pour la fin du mot et pas le début.
-\end{itemize}
-
-
 \section{Arbre de décision}
 
 Pour résoudre notre problème de PoS tagging, nous avons choisi d'implémenter un arbre de décision. Il s'agit d'un algorithme qui fabrique un arbre binaire dont un chemin dans cette arbre est une suite de test à effectuer sur une donnée pour ensuite arriver à une prédiction au niveau des feuilles de l'arbre. Contrairement à d'autre algorithme de machine learning, celui-ci est un algorithme qui permet de comprendre les prédictions effectué par celui-ci. C'est un algorithme boite blanche contrairement à d'autre qui sont des algorithme boite noir comme les réseaux de neurone. 
@@ -346,8 +325,8 @@ La construction de l'arbre en revanche est un peu plus subtile que pour la préd
 \State $bestYno \gets \emptyset$
 \ForAll {$features \in X$}
 \State $\overline{f} \gets select\_test(features)$
-\State $yes\_answer \gets \{y | \forall y \in Y, y \leq \overline{f} \}$
-\State $no\_answer \gets \{y | \forall y \in Y, y > \overline{f} \}$
+\State $yes\_answer \gets \{y_x |y \in Y, \forall x \in X, x \leq \overline{f} \}$
+\State $no\_answer \gets \{y_x |y \in Y, \forall x \in X, x > \overline{f} \}$
 \State $score \gets computeScore(yes\_answer, no\_answer)$
 \If {score is better than bestScore}
 
@@ -367,11 +346,30 @@ La construction de l'arbre en revanche est un peu plus subtile que pour la préd
 
 \subsection{Hyper-paramètre}
 
-Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètres permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
+Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètre permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
 
-Nous avons également deux autres hyper-paramètres importants permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de tests. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. Lorsqu'un nouveau test est généré, nous calculons son score. Nous souhaitons garder le test qui sépare au mieux l'ensemble de données et la méthode de calcul du score est un hyper-paramètre. Nous avons la méthode de calcul utilisant l'entropie et qui calcule le gain d'informations entre l'ensemble de données avant la séparation et les ensembles de données après la séparation. La seconde méthode de calcul utilise 
+Nous avons également deux autres hyper-paramètres importants permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de test. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. Cela est représenté par l'hyper-paramètre nommée gen\_test dans le code python et par la fonction $select\_test$ dans le pseudo-code~\ref{getBestTest}
 
+Lorsqu'un nouveau test est généré, nous calculons son score. Nous souhaitons gardé le test qui sépare au mieux l'ensemble de données et la méthode de calcul du score est un hyper-paramètre. Celui ci est représenté par l'hyper-paramètre nommée split\_criterion dans le code python et par la fonction $computeScore$ dans le pseudo-code~\ref{getBestTest}.
 
+ Nous avons la méthode de calcul utilisant l'entropie et qui calcul le gain d'information entre l'ensemble de donnée avant la séparation et les ensembles de données après la séparation. La formule du calcul du gain d'information que nous effectuons est la suivante :
+
+\begin{equation}
+I_{g} = H(Y) - P(yes\_answer) * H(yes\_answer) + P(no\_answer) * H(no\_answer)
+\end{equation}
+La probabilité P(yes\_answer) correspond au nombre de label présent dans l'ensemble yes\_answer divisé par le nombre de label dans l'ensemble des labels Y avant la séparation. H(yes\_answer) correspond à l'entropie de l'ensemble yes\_answer. Au final, le meilleur test est celui ayant le gain d'information maximal donc la valeur maximum de $I_g$.
+
+La seconde méthode de calcul que nous utilisons est l'indice de gini que nous calculons de la façon suivante :
+
+\begin{equation}
+Gini = 1 - \sum_{y \in yes\_answer}P(y)
+\end{equation}
+
+\begin{equation}
+scoreTest = P(yes\_answer) * Gini_{yes\_answer} + P(no\_answer) * Gini_{no\_answer}
+\end{equation}
+
+Le coefficient de gini est utilisé pour mesuré les inégalités de répartition des labels entre l'ensemble yes\_answer et no\_answer. Le but est de réduire ce degré d'inégalité, c'est pour cela qu'on cherche le test ayant le score le plus faible. 
 \section{Classifieur naïf bayésien}
 
 En plus de l'arbre de décision, nous avons voulu implémenter un classifieur naïf bayésien. Cependant, par manque de temps notamment à cause des autres projets que nous devions réaliser en même temps, nous avons passé beaucoup moins de temps dessus ce qui explique en partie ses mauvais résultats.
@@ -392,11 +390,16 @@ Cette formule est le théorème de Bayes, d'où le nom du classifieur. Puisqu'on
 P(x \mid C) \cdot P(C)
 \end{equation}
 
-Malheureusement, $P(x \mid C)$ nécessiterait un nombre extrêmement grand de données pour pouvoir être calculé correctement. C'est pourquoi il faut faire une hypothèse supplémentaire sur les données, d'où le qualificatif "naïf" de la méthode de classification ; ici, on suppose que chaque feature suit une loi normale et qu'elle est indépendante des autres, ce qui n'est évidemment pas le cas la plupart du temps ; malgré tout, la classification naïve bayésienne est réputée assez efficace pour le PoS Tagging. En supposant une telle distribution, on peut utiliser l'équation suivante, avec $x_i$ la feature $i$ de $x$, et $\mu_{C,i}$ et $\sigma_{C,i}$ respectivement la moyenne et l'écart type de cette feature pour les données de la classe $C$ :
+Malheureusement, $P(x \mid C)$ nécessiterait un nombre extrêmement grand de données pour pouvoir être calculé correctement. C'est pourquoi il faut faire une hypothèse supplémentaire sur les données, d'où le qualificatif "naïf" de la méthode de classification ; ici, on suppose que chaque feature suit une loi normale et qu'elle est indépendante des autres, ce qui n'est évidemment pas le cas la plupart du temps ; malgré tout, la classification naïve bayésienne est réputée assez efficace pour le PoS Tagging. En supposant une telle distribution, on peut utiliser l'équation suivante :
 
 \begin{equation}
-P(x \mid C) = \prod _{i \in F} \frac{1}{\sigma_{C,i} \sqrt{2 \pi}} e^{-\frac {1} {2} (\frac {x_i - \mu_{C,i}} {\sigma_{C,i}})^2}
+P(x \mid C) = \frac{1}{\sigma \sqrt{2 \pi}} e^{-\frac {1} {2} (\frac {x - \mu} {\sigma})^2}
 \end{equation}
+
+Avec $\mu$ la moyenne et $\sigma$ l'écart type, tous deux calculés plus tôt.
+
+
+\subsection{Résultats}
 
 
 \subsection{Hyper-paramètres}
@@ -405,12 +408,9 @@ Lors de l'implémentation, nous avons rencontré un souci sous la forme d'une di
 Après de rapides recherches, en remplaçant l'écart type par une valeur prédéfinie $\sigma$ dans ce cas, on obtient une formule avec des résultats satisfaisants. Cependant $\sigma$ ne doit être ni trop petit, ni trop grand. Nous avons décidé de faire de cette valeur un hyper-paramètre.
 
 
-\subsection{Résultats}
-
-
 \subsection{Idées de développement}
 
-Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes (en-dehors des bugs potentiels) pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
+Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
 
 Une solution serait de considérer différents types de features, par exemple booléennes, catégoriques, résultats de hachage, etc. Le calcul de probabilité effectué ensuite diffèrerait selon le type de la variable. Il reste à déterminer quelles catégories retenir, et quelles sont les fonctions qui y sont adaptées.
 

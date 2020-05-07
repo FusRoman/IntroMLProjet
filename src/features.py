@@ -20,7 +20,10 @@ def features():
         'allUpper': lambda s, i, t: s[i].isupper(),
         #'all-alpha': lambda s, i, t: s[i].isalpha(),
         # 'has-digit':        lambda s, i, t: any(c.isdigit() for c in s[i]),
-        'all-special': lambda s, i, t: not any(c.isalpha() or c.isdigit() for c in s[i]),
+        'all-special' : lambda s, i, t: not any(c.isalpha() or c.isdigit() for c in s[i]),
+        'all-num': lambda s, i, t: not any(not c.isdigit() for c in s[i]),
+        'has-special': lambda s, i, t: any(not c.isalpha() and not c.isdigit() for c in s[i]),
+
 
         'w-1': lambda s, i, t: t(s[i-1]),
         'w-2': lambda s, i, t: t(s[i-2]),
