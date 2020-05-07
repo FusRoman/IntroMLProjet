@@ -92,8 +92,14 @@ class NaiveBayesClassifier:
         for lab in allLabels:
             classLabel[lab] = id
             id += 1
+            
+        uniqueLabel = np.unique(Y)
+        for lab in uniqueLabel:
+            if lab not in allLabels:
+                classLabel[lab] = id
+                id += 1
         
-        nbLabel = len(allLabels)
+        nbLabel = len(classLabel.values())
         cm = np.zeros( (nbLabel, nbLabel) )
         
         Ypredict = self.predict(X)

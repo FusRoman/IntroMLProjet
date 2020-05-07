@@ -1,0 +1,22 @@
+Le code est organisé en 6 fichiers python contenant l'ensemble des classes
+et fonctions de notre projet.
+
+Le fichier dataAnalysis.py contient les classes permettant de manipuler les corpus
+et les fonctions permettant de généré les resultats statistiques et 
+les résultats des différentes métriques permettant d'analyser les corpus.
+
+Le fichiers DecisionTreeClassifier.py contient l'implémentation de notre
+modèle d'arbre de decision.
+
+Le fichier NaiveBayesClassifier.py contient l'implémentation de notre 
+modèle de classifier bayesien.
+
+Le fichier features contient l'implémentation des features utilisé ensuite
+par nos modèle
+
+Le fichier modelAnalysis.py permet d'effectuer l'analyse du modèle d'arbre
+de décision et de créer les graphes localisé dans le dossier results/decisionTree/
+
+Le jupyter-notebook appelé IntroMLProject.ipynb permet de lier ensemble tous ces 
+fichiers. L'exécution des cellules du jupyter-notebook suit l'ordre des chapitres 
+du rapport et permet d'avoir les résultats des différents fichiers .py. 
