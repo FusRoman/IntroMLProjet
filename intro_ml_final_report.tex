@@ -346,8 +346,8 @@ La construction de l'arbre en revanche est un peu plus subtile que pour la préd
 \State $bestYno \gets \emptyset$
 \ForAll {$features \in X$}
 \State $\overline{f} \gets select\_test(features)$
-\State $yes\_answer \gets yes\_answer \cup \{y | \forall y \in Y, y \leq \overline{f} \}$
-\State $no\_answer \gets no\_answer \cup \{y | \forall y \in Y, y > \overline{f} \}$
+\State $yes\_answer \gets \{y | \forall y \in Y, y \leq \overline{f} \}$
+\State $no\_answer \gets \{y | \forall y \in Y, y > \overline{f} \}$
 \State $score \gets computeScore(yes\_answer, no\_answer)$
 \If {score is better than bestScore}
 
@@ -367,7 +367,7 @@ La construction de l'arbre en revanche est un peu plus subtile que pour la préd
 
 \subsection{Hyper-paramètre}
 
-Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètre permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
+Le pseudo-code~\ref{buildTree} permet de construire l'arbre de décision. Plusieurs hyper-paramètres permettent de changer le comportement du pseudo-code. Dans un premier temps, nous avons deux hyper-paramètres permettant de limiter la récursion de l'algorithme. Le paramètre max\_depth permet de limiter la profondeur maximale de l'arbre tandis que le paramètre threshold permet de stopper une branche de l'arbre dès que l'un des ensembles d'entrée est inférieur au threshold. L'hyper-paramètre max\_depth rend sensible la construction de l'arbre au phénomène de sur-apprentissage. Si la limite de profondeur de l'arbre est trop grande, celui-ci risque d'avoir des tests trop spécifiques à l'ensemble d'apprentissage et la précision des prédictions diminueront sur l'ensemble de test.
 
 Nous avons également deux autres hyper-paramètres importants permettant de changer radicalement la construction de l'arbre et l'efficacité de celui-ci. Le premier concerne la génération de tests. Nous pouvons générer un test pour splitter les étiquettes en fonction de la moyenne ou de la médiane des features. Lorsqu'un nouveau test est généré, nous calculons son score. Nous souhaitons garder le test qui sépare au mieux l'ensemble de données et la méthode de calcul du score est un hyper-paramètre. Nous avons la méthode de calcul utilisant l'entropie et qui calcule le gain d'informations entre l'ensemble de données avant la séparation et les ensembles de données après la séparation. La seconde méthode de calcul utilise 
 
