@@ -3,7 +3,7 @@
 \contentsline {chapter}{\chapternumberline {1}Introduction}{3}{chapter.1}%
 \contentsline {section}{\numberline {1.1}Contexte}{3}{section.1.1}%
 \contentsline {section}{\numberline {1.2}Approche naive et identification des problèmes}{4}{section.1.2}%
-\contentsline {section}{\numberline {1.3}Historique du Part Of Speech tagging}{5}{section.1.3}%
+\contentsline {section}{\numberline {1.3}Historique du Part Of Speech Tagging}{5}{section.1.3}%
 \contentsline {chapter}{\chapternumberline {2}Etude des corpus}{7}{chapter.2}%
 \contentsline {section}{\numberline {2.1}Présentation général}{7}{section.2.1}%
 \contentsline {section}{\numberline {2.2}Contexte des différents corpus}{8}{section.2.2}%
@@ -16,7 +16,9 @@
 \contentsline {section}{\numberline {3.1}Features}{19}{section.3.1}%
 \contentsline {section}{\numberline {3.2}Arbre de décision}{20}{section.3.2}%
 \contentsline {subsection}{Hyper-paramètre}{21}{section*.5}%
-\contentsline {section}{\numberline {3.3}Classifieur naïf bayésien}{23}{section.3.3}%
-\contentsline {subsection}{Hyper-paramètres}{24}{section*.6}%
+\contentsline {subsection}{Optimisation et validation croisée}{24}{section*.6}%
 \contentsline {subsection}{Résultats}{25}{section*.7}%
-\contentsline {subsection}{Idées de développement}{25}{section*.8}%
+\contentsline {section}{\numberline {3.3}Classifieur naïf bayésien}{26}{section.3.3}%
+\contentsline {subsection}{Hyper-paramètres}{28}{section*.8}%
+\contentsline {subsection}{Résultats}{28}{section*.9}%
+\contentsline {subsection}{Idées de développement}{28}{section*.10}%

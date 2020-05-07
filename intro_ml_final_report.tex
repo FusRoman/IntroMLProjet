@@ -39,7 +39,7 @@ Out-Of-Domain PoS Tagging
 
 \chapter{Introduction}
 \section{Contexte}
-Le Part of speech tagging (PoS ou encore étiquetage morpho-syntaxique en français) consiste à construire un algorithme capable d'identifier et d'extraire les informations syntaxiques des mots contenue dans une phrases. Ainsi, notre algorithme doit être capable d'associer une étiquettes à chaque mot d'une phrases, cette étiquettes permettant de connaître la classe syntaxique du mot en question.\\
+Le Part of speech tagging (PoS ou encore étiquetage morpho-syntaxique en français) consiste à construire un algorithme capable d'identifier et d'extraire les informations syntaxiques des mots contenus dans une phrases. Ainsi, notre algorithme doit être capable d'associer une étiquette à chaque mot d'une phrase, cette étiquette permettant de connaître la classe syntaxique du mot en question.\\
 Le PoS est un problème bien connue en linguistique. Il s'agit de la façon dont, nous autres humains, comprenons les mots et leurs fonctions dans une phrases. Il s'agit d'un processus d'apprentissage que nous faisons en étant enfant lorsque nous lisont ou écoutons pour la première fois. Lorsque nous arrivons à identifier les structures syntaxiques d'une phrase, cela signifie que nous avons compris le contexte qui entoure la phrases, sa significations et donc de mieux la comprendre. Ainsi, avec le developpement des techniques algorithmiques moderne et l'augmentation des vitesses de traitements des ordinateurs, Nous voulons donner à nos ordinateurs la capacité de pouvoir comprendre le langage humain que ce soit écrit ou oral. Cela permettrait d'améliorer les algorithmes de detection des erreurs, les assistants personnels tel \href{https://www.apple.com/fr/siri/}{Siri} ou \href{https://www.microsoft.com/en-us/cortana}{Cortana} ou encore le domaine de la robotique avec par exemple \href{https://www.softbankrobotics.com/emea/fr/nao}{Nao}.
 
 \section{Approche naive et identification des problèmes}
@@ -58,11 +58,11 @@ Un autre problème est celui du \href{https://en.wikipedia.org/wiki/Use\%E2\%80\
 
 De plus, si nous utilisons l'approche naive de la table de hash. Il se pose la question du nombre de mot d'une langue mais également de la définition d'un mot. Il convient également d'identifier de quelles langues ont parle. L'humanité, au cours de son histoire, s'est scindée en de multiple groupes sur toute la planète et chacun à évolué avec sa propre histoire, culture et langue. Ainsi, notre algorithme doit-il se focaliser sur une seul langue ou essayer de toute les englobers ? Sur la question de la nature des mots d'une langue, il y a le cas des langues qui choisissent de composer des mots par associations comme l'allemand ou encore les langues agglutinantes comme \href{https://en.wikipedia.org/wiki/Longest_word_in_Turkish}{le turc}. Le français n'est pas \href{https://en.wikipedia.org/wiki/Longest_word_in_French}{en reste} non plus.
 
-Cette question sur la nature des mots est intrinséquements lié avec celle du nombre de mot d'une langue. Par exemple, \textit{le Larousse} rescense plus de 59 000 mots pour le français alors que \textit{Le Littré} en compte pas moins de \href{https://fr.babbel.com/fr/magazine/quelle-langue-contient-le-plus-de-mots}{132 000}. Le nombre de mot d'une langue change en fonction de la définition que l'on donne à un mot.
+Cette question sur la nature des mots est intrinsèquement liée avec celle du nombre de mot d'une langue. Par exemple, \textit{le Larousse} rescense plus de 59 000 mots pour le français alors que \textit{Le Littré} en compte pas moins de \href{https://fr.babbel.com/fr/magazine/quelle-langue-contient-le-plus-de-mots}{132 000}. Le nombre de mot d'une langue change en fonction de la définition que l'on donne à un mot.
 
 Il est donc essentielle de trouver une autre approche à ce problème.
 
-\section{Historique du Part Of Speech tagging}
+\section{Historique du Part Of Speech Tagging}
 
 Le tout premier corpus de langue a été construit dans les années 60 à l'université Brown à Providence dans le Rhode Island au Etats-Unis. Il était initialement composé uniquement de mot avec un total de 500 données de texte en langue anglaise pour plus de 1 000 000 de mots.Chacune des données ayant au moins 2000 mots. Ce corpus avait pour but de fournir des statistiques sur la langue anglaise comme la fréquence des mots dans la langue. 
 Très vite, les scientifiques et linguistique ajoute l'étiquetage morpho-syntaxique au brown corpus. Pour cela, un algorithme de PoS tagging est developpé par B.B. Green et G.M. Rubin. L'algorithme fonctionnait selon les possibilités de co-occurence des mots. PAr exemple, un determinant suit le plus souvent un mot en revanche un verbe n'est pas suivie d'un determinant. Ainsi, l'algorithme était capable d'atteindre 70\% 
@@ -379,7 +379,7 @@ Lorsqu'un nouveau test est généré, nous calculons son score. Nous souhaitons 
 \begin{equation}
 I_{g} = H(Y) - P(yes\_answer) * H(yes\_answer) + P(no\_answer) * H(no\_answer)
 \end{equation}
-La probabilité P(yes\_answer) correspond au nombre de label présent dans l'ensemble yes\_answer divisé par le nombre de label dans l'ensemble des labels Y avant la séparation. H(yes\_answer) correspond à l'entropie de l'ensemble yes\_answer. Au final, le meilleur test est celui ayant le gain d'information maximal donc la valeur maximum de $I_g$.
+La probabilité P(yes\_answer) correspond au nombre de labels présents dans l'ensemble yes\_answer divisé par le nombre de labels dans l'ensemble des labels Y avant la séparation. H(yes\_answer) correspond à l'entropie de l'ensemble yes\_answer. Au final, le meilleur test est celui ayant le gain d'information maximal donc la valeur maximum de $I_g$.
 
 La seconde méthode de calcul que nous utilisons est l'indice de gini que nous calculons de la façon suivante :
 
@@ -391,28 +391,28 @@ Gini = 1 - \sum_{y \in yes\_answer}P(y)
 scoreTest = P(yes\_answer) * Gini_{yes\_answer} + P(no\_answer) * Gini_{no\_answer}
 \end{equation}
 
-Le coefficient de gini est utilisé pour mesuré les inégalités de répartition des labels entre l'ensemble yes\_answer et no\_answer. Le but est de réduire ce degré d'inégalité, c'est pour cela qu'on cherche le test ayant le score la plus faible valeur de scoreTest.
+Le coefficient de gini est utilisé pour mesurer les inégalités de répartition des labels entre l'ensemble yes\_answer et no\_answer. Le but est de réduire ce degré d'inégalité, c'est pour cela qu'on cherche le test ayant le score la plus faible valeur de scoreTest.
 
-\subsection{optimisation et validation croisé}
+\subsection{Optimisation et validation croisée}
 
-Concernant l'implémentation de notre arbre de décision, Celle-ci a changé lorsque nous avons voulu effectué nos test pour la section resultat. La construction de l'arbre prenait en effet beaucoup trop de temps. La fonction fit() de la classe DecisionTreeClassifier était codé essentiellement avec des boucles for en python qui ralentissait sensiblement le temps d'éxecution. Nous avons alors changé l'implémentation et nous sommes passé sur des fonctions de la bibliothèque numpy. Cela à permis de réduire de façon significative le temps de calcul de nos arbre. En revanche, le temps de calcul sur les gros corpus GSD et FTB est toujours aussi long. 
+Concernant l'implémentation de notre arbre de décision, celle-ci a changé lorsque nous avons voulu effectué nos tests pour la section résultat. La construction de l'arbre prenait en effet beaucoup trop de temps. La fonction fit() de la classe DecisionTreeClassifier était codé essentiellement avec des boucles for en python qui ralentissait sensiblement le temps d'exécution. Nous avons alors changé l'implémentation et nous sommes passés sur des fonctions de la bibliothèque numpy. Cela a permis de réduire de façon significative le temps de calcul de nos arbres. En revanche, le temps de calcul sur les gros corpus GSD et FTB est toujours aussi long. 
 
-Pour la génération de nos résulats, nous utilisons la méthode de la validation croisé pour determiné les meilleurs hyper-paramètre de notre modèle. Elle consiste à entrainer notre modèle sur une instance d'hyper-paramètre donnée grâce à l'ensemble puis a testé notre modéle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètre et on recommence. Le but étant de trouver l'instance d'hyper-paramètre maximisant le score du modèle sur l'ensemble de test.
-La question que l'on peut se poser est alors : Pourquoi ne pas utilisé l'ensemble d'apprentissage pour évaluer le score du modèle ? 
-Tous simplement pour éviter le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle perd alors les paramètres lui permettant d'avoir les caractéristiques général du problème et gagne en précision sur les données spécifique de l'ensemble d'apprentissage.
+Pour la génération de nos résultats, nous utilisons la méthode de la validation croisée pour determiner les meilleurs hyper-paramètres de notre modèle. Elle consiste à entrainer notre modèle sur une instance d'hyper-paramètres donnée grâce à l'ensemble puis à tester notre modèle sur l'ensemble de test. On sauvegarde alors les résultats de cette session de test puis on change d'instance d'hyper-paramètres et on recommence. Le but est de trouver l'instance d'hyper-paramètres maximisant le score du modèle sur l'ensemble de test.
+La question que l'on peut se poser est alors : pourquoi ne pas utiliser l'ensemble d'apprentissage pour évaluer le score du modèle ? 
+Tout simplement pour éviter le phénomène de sur-apprentissage du modèle, un problème récurrent en machine-learning. Le sur-apprentissage intervient lorsque le modèle commence à ajuster un peu trop finement ces paramètres d'apprentissage sur l'ensemble d'apprentissage. Le modèle perd alors les paramètres lui permettant d'avoir les caractéristiques générales du problème et gagne en précision sur les données spécifiques de l'ensemble d'apprentissage.
 
-Le but de la validation croisé est donc d'évité ce phénomène en monitorant l'évolution du modèles grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue alors cela signifie que le modèle est probablement en train de sur-apprendre. 
-L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleur instance d'hyper-paramètre trouvé. Parfois certains jeu de données peuvent ne pas avoir besoin d'ensemble de développement mais c'est toujours mieux de tester une dernière fois notre modèle sur d'autre jeu de données inconnue. 
+Le but de la validation croisée est donc d'éviter ce phénomène en monitorant l'évolution du modèle grâce au jeu de données de test. Lorsque le score sur le jeu de données de test diminue alors cela signifie que le modèle est probablement en train de sur-apprendre. 
+L'ensemble de développement est lui plutôt utilisé pour évaluer le modèle final une fois la meilleure instance d'hyper-paramètres trouvée. Parfois certains jeux de données peuvent ne pas avoir besoin d'ensemble de développement, mais il est toujours préférable de tester une dernière fois notre modèle sur d'autres jeux de données inconnue. 
 
-\subsection{Resutats}
+\subsection{Résultats}
 
-Nous allons présenté dans cette section les différents résultats de nos tests sur les différents corpus avec notre modèle d'arbre de décision et les différents features. 
+Nous allons présenter dans cette section les différents résultats de nos tests sur les différents corpus avec notre modèle d'arbre de décision et les différentes features. 
 
-Pour la présentation de nos résultats,nous dessinons des graphes au moyen de la bibliothèque python matpotlib qui permettent d'observer l'évolution du score de notre modèle en fonction des différents instance d'hyper-paramètre possible. Nous dessinons 4 sous-graphe qui permettent d'observer l'évolution de la courbe de score en fonction de la profondeur maximale de l'arbre. Les 4 sous-graphe permettent de rendre compte des deux hyper-paramètre concernant le calcul du score des tests et de la méthode de génération des tests. 
+Pour la présentation de nos résultats,nous dessinons des graphes au moyen de la bibliothèque python matpotlib qui permettent d'observer l'évolution du score de notre modèle en fonction des différentes instance d'hyper-paramètre possible. Nous dessinons 4 sous-graphes qui permettent d'observer l'évolution de la courbe de score en fonction de la profondeur maximale de l'arbre. Les 4 sous-graphes permettent de rendre compte des deux hyper-paramètres concernant le calcul du score des tests et de la méthode de génération des tests. 
 
-Nous dessinons également la matrice de confusion qui nous permet de nous rendre compte des différents labels ayant été difficile à classer par notre modèle. Nous calculons la matrice de confusion entre l'ensemble d'entrainement et l'ensemble de test de chaque corpus. Nous calculons ensuite la matrice de confusion entre l'ensemble d'entrainement de chaque corpus avec les meilleurs hyper-paramètre et l'ensemble de test foot et natdis afin d'évaluer l'impact du changement de domaine. 
+Nous dessinons également la matrice de confusion qui nous permet de nous rendre compte des différents labels ayant été difficiles à classer par notre modèle. Nous calculons la matrice de confusion entre l'ensemble d'entraînement et l'ensemble de test de chaque corpus. Nous calculons ensuite la matrice de confusion entre l'ensemble d'entraînement de chaque corpus avec les meilleurs hyper-paramètres et l'ensemble de test foot et natdis afin d'évaluer l'impact du changement de domaine. 
 
-Sur les performances de notre modèle d'arbre de decision sans changement de contexte, nous obtenons entre 70\% et un peu moins de 90\% de précision.
+Sur les performances de notre modèle d'arbre de décision sans changement de contexte, nous obtenons entre 70\% et un peu moins de 90\% de précision.
 
 \begin{table}
 \begin{center}
@@ -431,15 +431,15 @@ Sur les performances de notre modèle d'arbre de decision sans changement de con
 \label{performanceResults}
 \end{table}
 
-Les performances relativement élevé entre l'ensemble d'apprentissage et de test du même corpus sont cohérent vis-à-vis des mesures avec les métriques que nous avions calculer dans le chapitre 2. Seul l'ensemble pud à des performances inférieurs à 80\% mais cela s'explique par la mesure de l'out of vocabulary. Il s'agit de l'ensemble ayant la valeur d'OOV la plus élevé et donc ces performance sont plus faible que les autres.
+Les performances relativement élevés entre l'ensemble d'apprentissage et de test du même corpus sont cohérentes vis-à-vis des mesures avec les métriques que nous avions calculées dans le chapitre 2. Seul l'ensemble pud a des performances inférieures à 80\% mais cela s'explique par la mesure de l'OOV. Il s'agit de l'ensemble ayant la valeur d'OOV la plus élevée et donc ces performances sont plus faibles que les autres.
 
-Pour les performances concerant les ensembles foot et natdis, il s'agit des ensembles ayant un contexte différent des ensembles d'apprentissage. Cela explique les faibles performances de notre modèle. 
+Pour les performances concernant les ensembles foot et natdis, il s'agit des ensembles ayant un contexte différent des ensembles d'apprentissage. Cela explique les faibles performances de notre modèle. 
 
 L'ensemble des graphes est disponible dans le dossier results/DecisionTree à partir de la racine du projet.
 
 \section{Classifieur naïf bayésien}
 
-En plus de l'arbre de décision, nous avons voulu implémenter un classifieur naïf bayésien. Cependant, par manque de temps notamment à cause des autres projets que nous devions réaliser en même temps, nous avons passé beaucoup moins de temps dessus ce qui explique en partie ses mauvais résultats.
+En plus de l'arbre de décision, nous avons voulu implémenter un classifieur naïf bayésien. Cependant, par manque de temps notamment à cause des autres projets que nous devions réaliser en même temps, nous avons passé beaucoup moins de temps dessus ce qui explique ses très mauvais résultats, si mauvais que le classifieur est complètement inutilisable en l'état. 
 
 La première étape pour réaliser un tel classifieur consiste à analyser l'ensemble de données d'apprentissage. On le subdivise d'abord par étiquette pour obtenir un sous-ensemble pour chaque classe. Sur chacun de ces ensembles, on calcule ensuite le cardinal, la moyenne et l'écart type.
 
@@ -475,7 +475,7 @@ Après de rapides recherches, en remplaçant l'écart type par une valeur préd�
 
 \subsection{Idées de développement}
 
-Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes (en-dehors des bugs potentiels) pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale.
+Les résultats de notre classifieur naïf bayésien sont très mauvais. Un des problèmes (en-dehors des bugs probables) pourrait être que nous utilisons une fonction de hachage sur les mots pour les convertir en entier, ce qui entre très probablement en contradiction avec l'hypothèse que chaque feature suit une loi normale. De même, il est absurde de parler de distribution normale sur des variables booléennes.
 
 Une solution serait de considérer différents types de features, par exemple booléennes, catégoriques, résultats de hachage, etc. Le calcul de probabilité effectué ensuite diffèrerait selon le type de la variable. Il reste à déterminer quelles catégories retenir, et quelles sont les fonctions qui y sont adaptées.
 
