@@ -29,7 +29,7 @@ def summarizeColumn(column):
     
     # Ecart type
     sum = 0
-    for x in column:
+    for x in column:# Pour l'instant on sépare par mots mais je suis pas sûr de moi
         sum += (x - avg) ** 2
     stdev = math.sqrt(sum / count)
     
