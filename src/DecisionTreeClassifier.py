@@ -36,25 +36,27 @@ class DecisionTreeClassifier:
 
     # Fonction permettant de calculer l'entropie d'un ensemble
     def computeEntropy(self, Y):
-        _, c = np.unique(Y, return_counts=True)
-        t = c / np.shape(Y)[0]
-        r = t * np.log2(t)
-        res = -np.sum(r)
+        _, count = np.unique(Y, return_counts=True)
+        proba = count / np.shape(Y)[0]
+        entropy = proba * np.log2(proba)
+        res = -np.sum(entropy)
         return res
 
     # Fonction permettant de calculer le degré d'impureté de l'ensemble Y
     def computeGiniImpurity(self, Y):
-        _, c = np.unique(Y, return_counts=True)
-        t = np.power((c / np.shape(Y)[0]), 2)
-        res = 1 - np.sum(t)
+        _, count = np.unique(Y, return_counts=True)
+        gini = np.power((count / np.shape(Y)[0]), 2)
+        res = 1 - np.sum(gini)
         return res
 
+    # Fonction calculant la moyenne de toute les features uniques
     def mean(self, X, nbfeature):
         res = np.zeros(nbfeature)
         for f in range(nbfeature):
             res[f] = np.mean(np.unique(X[:, f]))
         return res
 
+    # Fonction calculant la médiane de toute les features uniques
     def median(self, X, nbfeature):
         res = np.zeros(nbfeature)
         for f in range(nbfeature):
@@ -166,7 +168,6 @@ class DecisionTreeClassifier:
     def fit(self):
 
         def build_tree(X, Y, max_depth):
-            
             # test permettant de savoir si l'on a atteint une feuille
             # on s'arrête si l'on atteint la profondeur maximal ou que le nombre de données
             # du noeud passe sous la barre d'un certain seuil
