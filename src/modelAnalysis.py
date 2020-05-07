@@ -1,18 +1,21 @@
 import time
 import numpy as np
 import math
+import itertools
+
+
 import matplotlib.pyplot as plt
 import dataAnalysis as da
 import DecisionTreeClassifier as dtree
-import itertools
+import features as ft
 
 
 def analyzeDecisionTree(nameDataSet, maximum_depth=30, verbose=False):
 
     trainSet, testSet = da.listeCorpus[nameDataSet].trainDataSet, da.listeCorpus[nameDataSet].testDataSet
 
-    Xtrain, Ytrain = dtree.buildFeature(trainSet)
-    Xtest, Ytest = dtree.buildFeature(testSet)
+    Xtrain, Ytrain = ft.buildFeature(trainSet)
+    Xtest, Ytest = ft.buildFeature(testSet)
 
     decisionTree = dtree.DecisionTreeClassifier(Xtrain, Ytrain)
 
